@@ -244,10 +244,16 @@ export default function CapsuleApp() {
       <style>{CSS}</style>
       {screen === "loading"    && <LoadingScreen />}
       {screen === "auth"       && <AuthScreen />}
-      {screen === "onboarding" && <OnboardingFlow onComplete={handleOnboardingComplete} />}
+      {screen === "onboarding" && (
+        <OnboardingFlow
+          onComplete={handleOnboardingComplete}
+          initialProfile={userProfile}
+        />
+      )}
       {screen === "listing"    && (
         <ListingPage
           profile={userProfile}
+          userId={userId}
           onEditProfile={() => setScreen("onboarding")}
           onSignOut={handleSignOut}
         />
@@ -431,11 +437,11 @@ function AuthScreen() {
 // ONBOARDING
 // ═══════════════════════════════════════════════════════════════
 
-function OnboardingFlow({ onComplete }) {
+function OnboardingFlow({ onComplete, initialProfile }) {
   const [step, setStep]   = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const [animDir, setAnimDir] = useState("forward");
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState(initialProfile || {
     prenom:"", dressing:[], marques:[], style:null,
     ouverture:null, tailles:{}, tons:[], coupes:[],
   });
@@ -800,16 +806,31 @@ function BrandsStep({ profile, toggle }) {
 // LISTING PAGE
 // ═══════════════════════════════════════════════════════════════
 
-function ListingPage({ profile, onEditProfile, onSignOut }) {
+function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
   const [wishlist, setWishlist]             = useState([]);
   const [filterBrand, setFilterBrand]       = useState("All");
   const [filterType, setFilterType]         = useState("All");
   const [sortMode, setSortMode]             = useState("relevance");
   const [showWishlist, setShowWishlist]     = useState(false);
+  // aiInsights est intentionnellement réinitialisé à chaque remount (changement de profil)
+  // ce qui invalide le cache IA automatiquement après une édition de profil
   const [aiInsights, setAiInsights]         = useState({});
   const [loadingInsight, setLoadingInsight] = useState(null);
   const [activeProduct, setActiveProduct]   = useState(null);
   const [showProfile, setShowProfile]       = useState(false);
+
+  // Chargement initial de la wishlist depuis Supabase
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("wishlist_items")
+      .select("product_id")
+      .eq("user_id", userId)
+      .then(({ data, error }) => {
+        if (error) { console.error("Wishlist load error:", error); return; }
+        if (data) setWishlist(data.map(w => Number(w.product_id)));
+      });
+  }, [userId]);
 
   const brands = ["All", ...Array.from(new Set(ALL_PRODUCTS.map(p => p.brand))).sort()];
 
@@ -819,7 +840,25 @@ function ListingPage({ profile, onEditProfile, onSignOut }) {
     .sort((a,b) => sortMode==="relevance" ? b.score-a.score : sortMode==="asc" ? a.price-b.price : b.price-a.price);
 
   const wishlistProducts = ALL_PRODUCTS.filter(p => wishlist.includes(p.id));
-  const toggleWish = (id, e) => { e?.stopPropagation(); setWishlist(w => w.includes(id) ? w.filter(x=>x!==id) : [...w,id]); };
+
+  const toggleWish = (id, e) => {
+    e?.stopPropagation();
+    const isWished = wishlist.includes(id);
+    // Mise à jour optimiste immédiate
+    setWishlist(w => isWished ? w.filter(x => x !== id) : [...w, id]);
+    // Sync Supabase en arrière-plan — silencieuse si erreur
+    if (isWished) {
+      supabase.from("wishlist_items")
+        .delete()
+        .eq("user_id", userId)
+        .eq("product_id", String(id))
+        .then(({ error }) => { if (error) console.error("Wishlist remove error:", error); });
+    } else {
+      supabase.from("wishlist_items")
+        .insert({ user_id: userId, product_id: String(id) })
+        .then(({ error }) => { if (error) console.error("Wishlist add error:", error); });
+    }
+  };
 
   const openProduct = async (product) => {
     setActiveProduct(product);
