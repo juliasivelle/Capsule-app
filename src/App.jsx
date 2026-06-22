@@ -1,4 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 // ═══════════════════════════════════════════════════════════════
 // DATA
@@ -131,20 +137,293 @@ Reply with sentence only, no quotes, no punctuation at end.`
 }
 
 // ═══════════════════════════════════════════════════════════════
+// SUPABASE HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+async function loadProfileFromSupabase(userId) {
+  const [{ data: profileData }, { data: prefData }, { data: wardrobeData }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", userId).single(),
+    supabase.from("profile_preferences").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("wardrobe_items").select("*").eq("user_id", userId),
+  ]);
+
+  if (!prefData) return null; // Nouvel utilisateur, onboarding non fait
+
+  return {
+    prenom:    profileData?.full_name || "",
+    style:     prefData.style || null,
+    ouverture: prefData.discovery ? "open" : "strict",
+    tailles:   prefData.sizes || {},
+    tons:      prefData.tones || [],
+    coupes:    prefData.cuts_hauts || [],
+    marques:   prefData.brands || [],
+    dressing:  (wardrobeData || []).map(w => ({
+      type:  w.category || w.name,
+      color: w.color || "",
+      brand: w.notes || null,
+    })),
+  };
+}
+
+async function saveProfileToSupabase(userId, profile) {
+  await supabase
+    .from("profiles")
+    .update({ full_name: profile.prenom })
+    .eq("id", userId);
+
+  await supabase.from("profile_preferences").upsert({
+    user_id:    userId,
+    sizes:      profile.tailles,
+    tones:      profile.tons,
+    cuts_hauts: profile.coupes,
+    cuts_bas:   profile.coupes,
+    style:      profile.style,
+    brands:     profile.marques,
+    discovery:  profile.ouverture === "open",
+  }, { onConflict: "user_id" });
+
+  if (profile.dressing.length > 0) {
+    await supabase.from("wardrobe_items").delete().eq("user_id", userId);
+    await supabase.from("wardrobe_items").insert(
+      profile.dressing.map(d => ({
+        user_id:  userId,
+        name:     `${d.color} ${d.type}`,
+        category: d.type,
+        color:    d.color,
+        notes:    d.brand || null,
+      }))
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // ROOT
 // ═══════════════════════════════════════════════════════════════
 
 export default function CapsuleApp() {
-  const [screen, setScreen] = useState("onboarding");
+  const [screen, setScreen]         = useState("loading"); // loading | auth | onboarding | listing
   const [userProfile, setUserProfile] = useState(null);
+  const [userId, setUserId]           = useState(null);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session) {
+        setUserId(null);
+        setUserProfile(null);
+        setScreen("auth");
+        return;
+      }
+      setUserId(session.user.id);
+      const profile = await loadProfileFromSupabase(session.user.id);
+      if (profile) {
+        setUserProfile(profile);
+        setScreen("listing");
+      } else {
+        setScreen("onboarding");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleOnboardingComplete = async (profile) => {
+    try {
+      await saveProfileToSupabase(userId, profile);
+    } catch (err) {
+      console.error("Erreur sauvegarde profil :", err);
+    }
+    setUserProfile(profile);
+    setScreen("listing");
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <>
       <style>{CSS}</style>
-      {screen === "onboarding"
-        ? <OnboardingFlow onComplete={p => { setUserProfile(p); setScreen("listing"); }} />
-        : <ListingPage profile={userProfile} onEditProfile={() => setScreen("onboarding")} />
-      }
+      {screen === "loading"    && <LoadingScreen />}
+      {screen === "auth"       && <AuthScreen />}
+      {screen === "onboarding" && <OnboardingFlow onComplete={handleOnboardingComplete} />}
+      {screen === "listing"    && (
+        <ListingPage
+          profile={userProfile}
+          onEditProfile={() => setScreen("onboarding")}
+          onSignOut={handleSignOut}
+        />
+      )}
     </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════════════════════
+
+function LoadingScreen() {
+  return (
+    <div className="auth-root">
+      <div style={{ textAlign:"center" }}>
+        <div className="auth-logo">Capsule</div>
+        <div className="auth-tagline">Your AI personal shopper</div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+
+function AuthScreen() {
+  const [mode, setMode]           = useState("login"); // login | signup | forgot
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [name, setName]           = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [forgotSent, setForgotSent] = useState(false);
+
+  const switchMode = (m) => { setMode(m); setError(null); };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (mode === "signup" && password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const { error: err } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: name } },
+        });
+        if (err) throw err;
+      } else {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setError(null);
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (err) setError(err.message);
+  };
+
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      if (err) throw err;
+      setForgotSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (mode === "forgot") {
+    return (
+      <div className="auth-root">
+        <div className="auth-card">
+          <div className="auth-logo">Capsule</div>
+          <div className="auth-tagline">Your AI personal shopper</div>
+          {forgotSent ? (
+            <div className="auth-success">
+              <p>Check your inbox — we've sent you a reset link.</p>
+              <button className="auth-link" onClick={() => { switchMode("login"); setForgotSent(false); }}>
+                ← Back to sign in
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className="auth-title">Reset password</h2>
+              <p className="auth-desc">Enter your email and we'll send you a reset link.</p>
+              <form onSubmit={handleForgot}>
+                <label className="ob-label">Email</label>
+                <input className="ob-input" type="email" value={email}
+                  onChange={e => setEmail(e.target.value)} required autoFocus />
+                {error && <div className="auth-error">{error}</div>}
+                <button className="next-btn" style={{width:"100%",borderRadius:8,marginTop:4}} disabled={loading}>
+                  {loading ? "Sending…" : "Send reset link →"}
+                </button>
+              </form>
+              <button className="auth-link" onClick={() => switchMode("login")}>← Back to sign in</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-root">
+      <div className="auth-card">
+        <div className="auth-logo">Capsule</div>
+        <div className="auth-tagline">Your AI personal shopper</div>
+        <h2 className="auth-title">{mode === "login" ? "Welcome back" : "Create your account"}</h2>
+        <p className="auth-desc">{mode === "login" ? "Sign in to your style profile." : "Start building your capsule wardrobe."}</p>
+
+        <button className="auth-google" onClick={handleGoogle} disabled={loading}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C16.658 14.013 17.64 11.706 17.64 9.2z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div className="auth-divider"><span>or</span></div>
+
+        <form onSubmit={handleSubmit}>
+          {mode === "signup" && (
+            <>
+              <label className="ob-label">First name</label>
+              <input className="ob-input" type="text" placeholder="Sophie" value={name}
+                onChange={e => setName(e.target.value)} />
+            </>
+          )}
+          <label className="ob-label">Email</label>
+          <input className="ob-input" type="email" placeholder="you@example.com" value={email}
+            onChange={e => setEmail(e.target.value)} required />
+          <label className="ob-label">Password</label>
+          <input className="ob-input" type="password"
+            placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"}
+            value={password} onChange={e => setPassword(e.target.value)} required />
+          {error && <div className="auth-error">{error}</div>}
+          <button className="next-btn" style={{width:"100%",borderRadius:8,marginTop:4}} disabled={loading}>
+            {loading ? "…" : mode === "login" ? "Sign in →" : "Create account →"}
+          </button>
+        </form>
+
+        {mode === "login" && (
+          <button className="auth-link" onClick={() => switchMode("forgot")}>Forgot your password?</button>
+        )}
+        <div className="auth-switch">
+          {mode === "login"
+            ? <>No account? <button className="auth-link-inline" onClick={() => switchMode("signup")}>Sign up</button></>
+            : <>Already a member? <button className="auth-link-inline" onClick={() => switchMode("login")}>Sign in</button></>
+          }
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -521,7 +800,7 @@ function BrandsStep({ profile, toggle }) {
 // LISTING PAGE
 // ═══════════════════════════════════════════════════════════════
 
-function ListingPage({ profile, onEditProfile }) {
+function ListingPage({ profile, onEditProfile, onSignOut }) {
   const [wishlist, setWishlist]             = useState([]);
   const [filterBrand, setFilterBrand]       = useState("All");
   const [filterType, setFilterType]         = useState("All");
@@ -623,7 +902,8 @@ function ListingPage({ profile, onEditProfile }) {
       )}
       {showProfile && (
         <ProfilePanel profile={profile} onClose={() => setShowProfile(false)}
-          onEdit={() => { setShowProfile(false); onEditProfile(); }} />
+          onEdit={() => { setShowProfile(false); onEditProfile(); }}
+          onSignOut={onSignOut} />
       )}
     </div>
   );
@@ -736,7 +1016,7 @@ function WishlistPanel({ products, onClose, onRemove, onOpen }) {
   );
 }
 
-function ProfilePanel({ profile, onClose, onEdit }) {
+function ProfilePanel({ profile, onClose, onEdit, onSignOut }) {
   const dressingStr = (profile?.dressing||[]).map(d=>`${d.color} ${d.type}${d.brand?` · ${d.brand}`:""}`);
   return (
     <div className="panel-overlay" onClick={onClose}>
@@ -768,6 +1048,7 @@ function ProfilePanel({ profile, onClose, onEdit }) {
           {Object.keys(profile?.tailles||{}).length>0&&<div className="profile-section"><div className="profile-section-lbl">📐 Sizes</div><div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>{TAILLES_CONFIG.map(cat=>profile?.tailles?.[cat.id]?(<div key={cat.id} style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"#8B7355"}}>{cat.icon} {cat.label}</span><span className="t-chip sel" style={{cursor:"default"}}>{profile.tailles[cat.id]}</span></div>):null)}</div></div>}
           {dressingStr.length>0&&<div className="profile-section"><div className="profile-section-lbl">👗 Wardrobe ({dressingStr.length})</div><div className="chips-grid" style={{marginTop:8}}>{dressingStr.map((v,i)=><span key={i} className="chip" style={{cursor:"default",fontSize:11}}>{v}</span>)}</div></div>}
           <button className="btn-outline" onClick={onEdit} style={{width:"100%",marginTop:4}}>✏️ Edit my profile</button>
+          <button className="btn-outline" onClick={onSignOut} style={{width:"100%",marginTop:8,color:"#8B7355",borderColor:"#D4C5B0"}}>Sign out</button>
         </div>
       </div>
     </div>
@@ -1015,4 +1296,24 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
   .modal-img{min-height:0}
   .panel-box{width:100%}
 }
+
+/* ── AUTH ── */
+.auth-root{min-height:100vh;background:#F7F3EE;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{background:#fff;border:1px solid #EDE5DA;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.06)}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;letter-spacing:.06em;color:#0F0F0F;text-align:center;margin-bottom:4px}
+.auth-tagline{font-size:9px;color:#C4A882;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-bottom:28px}
+.auth-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:#0F0F0F;margin-bottom:6px}
+.auth-desc{font-size:13px;color:#8B7355;margin-bottom:22px;line-height:1.6;font-weight:300}
+.auth-google{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px;border:1px solid #DDD5C8;border-radius:8px;background:#fff;font-size:13px;font-family:inherit;cursor:pointer;color:#0F0F0F;transition:border-color .2s,background .2s;margin-bottom:16px}
+.auth-google:hover:not(:disabled){border-color:#8B7355;background:#F7F3EE}
+.auth-google:disabled{opacity:.5;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:11px;color:#B0A090}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:#EDE5DA}
+.auth-error{background:#FEF0EE;border:1px solid #F9CABB;border-radius:7px;padding:9px 12px;font-size:12px;color:#B94040;margin-bottom:12px;line-height:1.5}
+.auth-success{text-align:center;padding:16px 0;font-size:14px;color:#3D6B3D;line-height:1.7}
+.auth-link{background:none;border:none;cursor:pointer;font-size:12px;color:#8B7355;font-family:inherit;display:block;margin:14px auto 0;text-decoration:underline;text-underline-offset:2px;transition:color .2s}
+.auth-link:hover{color:#0F0F0F}
+.auth-link-inline{background:none;border:none;cursor:pointer;font-size:12px;color:#C4A882;font-family:inherit;text-decoration:underline;text-underline-offset:2px;padding:0;transition:color .2s}
+.auth-link-inline:hover{color:#0F0F0F}
+.auth-switch{text-align:center;font-size:12px;color:#8B7355;margin-top:16px}
 `;

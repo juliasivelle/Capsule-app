@@ -30,3 +30,4 @@ dist
 
 .env.txt
 supabase/.temp
+.vercel
