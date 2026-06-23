@@ -115,7 +115,22 @@ const TAG_COLORS = {
   "Discovery":           { bg:"#C4D4E8", color:"#1A1A1A" },
 };
 
-const TYPES = ["All","T-shirts","Shirts","Blouses","Knitwear","Trousers","Jeans","Skirts","Dresses","Blazers","Jackets","Coats","Boots","Bags"];
+const TYPES = [
+  { key:"All",      label:"Tout" },
+  { key:"T-shirts", label:"T-shirts" },
+  { key:"Shirts",   label:"Chemises" },
+  { key:"Blouses",  label:"Blouses" },
+  { key:"Knitwear", label:"Pulls" },
+  { key:"Trousers", label:"Pantalons" },
+  { key:"Jeans",    label:"Jeans" },
+  { key:"Skirts",   label:"Jupes" },
+  { key:"Dresses",  label:"Robes" },
+  { key:"Blazers",  label:"Blazers" },
+  { key:"Jackets",  label:"Vestes" },
+  { key:"Coats",    label:"Manteaux" },
+  { key:"Boots",    label:"Chaussures" },
+  { key:"Bags",     label:"Sacs" },
+];
 
 // ═══════════════════════════════════════════════════════════════
 // AI HELPER
@@ -879,40 +894,38 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
     <div className="ls-root">
       <header className="ls-header">
         <div className="ls-header-left">
-          <div>
-            <div className="ls-logo">Capsule</div>
-            <div className="ls-tagline-header">Your AI personal shopper</div>
+          <div className="ls-logo">
+            CAPS<span style={{color:"#C4694A"}}>U</span>LE
           </div>
-          <div className="ls-divider"/>
-          <div className="ls-greeting">Hello <strong>{profile?.prenom||"there"}</strong> — <span>{displayed.length} pieces selected for you</span></div>
         </div>
         <div className="ls-header-right">
-          <button className="ls-btn-icon" onClick={() => setShowProfile(true)}>
-            <div className="ls-avatar">{profile?.prenom?.[0]||"P"}</div>
-            <span>My profile</span>
+          <button className="ls-icon-btn" aria-label="Rechercher">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          <button className="ls-btn-icon" onClick={() => setShowWishlist(true)}>
-            <span style={{fontSize:17}}>♡</span>
+          <button className="ls-icon-btn" onClick={() => setShowWishlist(true)} aria-label="Wishlist" style={{position:"relative"}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="ls-badge">{wishlist.length}</span>}
-            <span>Wishlist</span>
+          </button>
+          <button className="ls-icon-btn ls-avatar-btn" onClick={() => setShowProfile(true)} aria-label="Mon profil">
+            {profile?.prenom?.[0]||"P"}
           </button>
         </div>
       </header>
 
-      {/* Profile strip */}
-      <div className="ls-strip">
-        <span className="ls-strip-label">Active profile:</span>
-        {[profile?.style,...(profile?.tons||[]),...(profile?.coupes||[]).slice(0,2)].filter(Boolean).map(t => (
-          <span key={t} className="ls-strip-tag">{t}</span>
-        ))}
-        {(profile?.marques||[]).length>0 && <span className="ls-strip-tag dark">{profile.marques.length} brand{profile.marques.length>1?"s":""}</span>}
+      {/* Barre profil noire */}
+      <div className="ls-profile-bar">
+        <span className="ls-profile-bar-text">
+          Profil&nbsp;: <strong>{profile?.prenom||"—"}</strong>
+          {profile?.style && <>&nbsp;|&nbsp;{profile.style}</>}
+        </span>
+        <span className="ls-profile-bar-count">{displayed.length} pièces sélectionnées</span>
       </div>
 
-      {/* Controls */}
+      {/* Filtres */}
       <div className="ls-controls">
         <div className="ls-type-scroll">
           {TYPES.map(t => (
-            <button key={t} onClick={() => setFilterType(t)} className={`ls-chip${filterType===t?" active":""}`}>{t}</button>
+            <button key={t.key} onClick={() => setFilterType(t.key)} className={`ls-chip${filterType===t.key?" active":""}`}>{t.label}</button>
           ))}
         </div>
         <div className="ls-right-ctrl">
@@ -920,9 +933,9 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
             {brands.map(b => <option key={b}>{b}</option>)}
           </select>
           <select value={sortMode} onChange={e => setSortMode(e.target.value)} className="ls-select">
-            <option value="relevance">AI relevance</option>
-            <option value="asc">Price ↑</option>
-            <option value="desc">Price ↓</option>
+            <option value="relevance">Pertinence IA</option>
+            <option value="asc">Prix ↑</option>
+            <option value="desc">Prix ↓</option>
           </select>
         </div>
       </div>
@@ -1221,23 +1234,19 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 
 /* ── LISTING ── */
 .ls-root{min-height:100vh;background:#F7F3EE}
-.ls-header{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;border-bottom:1px solid #E5DDD0;background:rgba(247,243,238,.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.ls-header-left{display:flex;align-items:center;gap:18px}
-.ls-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;letter-spacing:.06em;color:#0F0F0F;line-height:1}
-.ls-tagline-header{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#C4A882;font-weight:500;margin-top:2px}
-.ls-divider{width:1px;height:26px;background:#E5DDD0}
-.ls-greeting{font-size:13px;color:#8B7355;font-weight:300}
-.ls-greeting strong{color:#0F0F0F;font-weight:500}
-.ls-greeting span{color:#C4A882}
-.ls-header-right{display:flex;align-items:center;gap:8px}
-.ls-btn-icon{display:flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid #D4C5B0;border-radius:100px;background:transparent;cursor:pointer;font-family:inherit;font-size:12px;color:#0F0F0F;position:relative;transition:all .2s}
-.ls-btn-icon:hover{background:#EFE9E0}
-.ls-avatar{width:22px;height:22px;background:#0F0F0F;color:#F7F3EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600}
-.ls-badge{position:absolute;top:-5px;right:-5px;background:#C4A882;color:#fff;border-radius:50%;width:15px;height:15px;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
-.ls-strip{display:flex;align-items:center;gap:7px;padding:8px 26px;background:#EFE9E0;border-bottom:1px solid #E5DDD0;flex-wrap:wrap}
-.ls-strip-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8B7355;font-weight:500}
-.ls-strip-tag{font-size:11px;padding:3px 10px;background:#fff;border:1px solid #D4C5B0;border-radius:100px;color:#0F0F0F;white-space:nowrap}
-.ls-strip-tag.dark{background:#0F0F0F;color:#F7F3EE;border-color:#0F0F0F;margin-left:auto}
+.ls-header{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;border-bottom:1px solid #E5DDD0;background:rgba(247,243,238,.97);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.ls-header-left{display:flex;align-items:center}
+.ls-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.18em;color:#0F0F0F;line-height:1;text-transform:uppercase}
+.ls-header-right{display:flex;align-items:center;gap:4px}
+.ls-icon-btn{width:38px;height:38px;border:none;border-radius:50%;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0F0F0F;transition:background .15s;position:relative;padding:0}
+.ls-icon-btn:hover{background:#EFE9E0}
+.ls-avatar-btn{background:#0F0F0F;color:#F7F3EE;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;letter-spacing:.04em}
+.ls-avatar-btn:hover{background:#2C2C2C}
+.ls-badge{position:absolute;top:2px;right:2px;background:#C4694A;color:#fff;border-radius:50%;width:14px;height:14px;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;pointer-events:none}
+.ls-profile-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 26px;background:#0F0F0F;color:#F7F3EE}
+.ls-profile-bar-text{font-size:11px;letter-spacing:.04em;font-weight:300}
+.ls-profile-bar-text strong{font-weight:600;color:#F7F3EE}
+.ls-profile-bar-count{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8B7355}
 .ls-controls{display:flex;align-items:center;justify-content:space-between;padding:11px 26px;gap:12px;border-bottom:1px solid #E5DDD0;flex-wrap:wrap}
 .ls-type-scroll{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:2px}
 .ls-chip{padding:6px 13px;border-radius:100px;border:1px solid #D4C5B0;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;background:transparent;color:#0F0F0F;font-family:inherit}
@@ -1331,8 +1340,8 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
   .ouv-grid{grid-template-columns:1fr}
   .style-grid{grid-template-columns:repeat(2,1fr)}
   .ob-title{font-size:28px}
-  .ls-header{padding:11px 14px}
-  .ls-tagline-header,.ls-divider,.ls-greeting{display:none}
+  .ls-header{padding:11px 16px}
+  .ls-profile-bar{padding:7px 16px}
   .ls-controls{padding:9px 14px}
   .ls-grid{padding:12px;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .modal-inner{grid-template-columns:1fr}
