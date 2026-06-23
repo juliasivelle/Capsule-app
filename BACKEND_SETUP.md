@@ -151,7 +151,107 @@ select * from public.sync_logs order by ran_at desc limit 5;
 
 ---
 
-## 5. Vérifier que raw_products se remplit
+## 5. Edge Function — `transform-products`
+
+### Ce que fait cette fonction
+
+Pour chaque ligne de `raw_products` :
+1. **Mapping catégorie** — `merchant_category` → catégorie interne via `merchants.category_mapping` (JSONB), avec fallback dictionnaire intégré. Produits non reconnus → catégorie `"À trier"` (warning console, jamais de plantage)
+2. **Normalisation couleur** — `raw_colour` → groupe de tons parmi : `Neutrals`, `Earthy tones`, `Pastels`, `Bold colours`, `Dark & rich`, `Black & White`
+3. **Parsing tailles** — `raw_size` (`;` ou `,` séparés) → `sizes_available[]`
+4. **Stock status** — `in_stock=false` → `none` · 1 taille disponible → `few` · sync >48h → `few` · sinon → `ok`
+5. **Classification IA** (Claude claude-sonnet-4-6) — uniquement si `style IS NULL` ou si le nom a changé. Sortie JSON forcée avec validation enum. Si invalide → `style/cut/gender` restent `NULL` (retrouvables via `SELECT * FROM products WHERE style IS NULL`)
+6. **UPSERT** dans `products` avec `match_scores_dirty = true`
+7. **Désactivation** — produits `in_stock=false` depuis >7 jours → `is_active = false` (jamais de suppression physique)
+
+### Déployer
+
+```bash
+supabase functions deploy transform-products
+```
+
+### Secret requis
+
+Dans **Supabase Dashboard → Edge Functions → transform-products → Secrets** :
+
+| Variable | Description |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Clé API Anthropic pour la classification IA |
+
+### Déclencher manuellement
+
+```bash
+curl -X POST https://dyrbhjmcixbpeultzbzq.supabase.co/functions/v1/transform-products \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cmJoam1jaXhicGV1bHR6YnpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTEyNDEsImV4cCI6MjA5NzY4NzI0MX0.nHF78d7Eahd_N7vD_qO4tuTtaCBUga9iWadHxKwoO1I"
+```
+
+### Ordre d'exécution recommandé
+
+```
+sync-awin-feed  →  transform-products
+```
+
+Enchaîner les deux en cron :
+
+```sql
+-- Sync Awin à 3h, transform à 3h15
+select cron.schedule('transform-products-daily', '15 3 * * *',
+  $$ select net.http_post(
+    url     := 'https://dyrbhjmcixbpeultzbzq.supabase.co/functions/v1/transform-products',
+    headers := '{"Authorization": "Bearer <ANON_KEY>"}'::jsonb
+  ); $$
+);
+```
+
+### Vérifier les produits transformés
+
+```sql
+-- Résumé après transformation
+select category, count(*) as total,
+       count(*) filter (where style is not null) as classified,
+       count(*) filter (where style is null) as unclassified
+from public.products
+group by category
+order by total desc;
+
+-- Produits non classifiés (à corriger manuellement)
+select awin_product_id, name, category, in_stock
+from public.products
+where style is null;
+
+-- Cohérence style/cut pour 5 produits
+select name, category, style, cut, gender, tones, stock_status
+from public.products
+limit 5;
+```
+
+---
+
+## 6. Coût de la classification IA — estimation budget
+
+Modèle : **claude-sonnet-4-6** · Tarifs : $3/MTok input · $15/MTok output
+
+| Mode | Tokens input | Tokens output | Coût / produit |
+|------|-------------|---------------|----------------|
+| Texte seul | ~250 tok | ~30 tok | ~$0.0012 |
+| Texte + image URL | ~1 500 tok | ~30 tok | ~$0.0050 |
+
+> Les images Awin sont des URLs publiques — Claude les charge directement. Le coût varie selon la résolution.
+
+**Estimations pour un vrai catalogue :**
+
+| Nb produits | Texte seul | Avec images |
+|-------------|-----------|-------------|
+| 100 | ~$0.12 | ~$0.50 |
+| 500 | ~$0.60 | ~$2.50 |
+| 1 000 | ~$1.20 | ~$5.00 |
+| 5 000 | ~$6.00 | ~$25.00 |
+
+**Optimisation coût recommandée :** ne classifier qu'une fois (la fonction vérifie `style IS NULL` et ne reclassifie pas si le nom n'a pas changé). Sur un catalogue stable, le coût IA est un coût d'initialisation, pas récurrent.
+
+---
+
+## 7. Vérifier que raw_products se remplit
 
 ```sql
 -- Compter les produits par marchand
