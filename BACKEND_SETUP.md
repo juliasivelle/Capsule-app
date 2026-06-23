@@ -251,7 +251,82 @@ Modèle : **claude-sonnet-4-6** · Tarifs : $3/MTok input · $15/MTok output
 
 ---
 
-## 7. Vérifier que raw_products se remplit
+## 7. Pipeline automatisé — exécution nocturne
+
+### Ce qui tourne chaque nuit
+
+À **3h UTC (4h Paris)**, pg_cron déclenche la Edge Function `run-pipeline` qui :
+
+1. Appelle `sync-awin-feed` → récupère le flux Awin → remplit `raw_products`
+2. **Seulement si le sync a réussi** → appelle `transform-products` → enrichit `products` avec classification IA
+
+Si `sync-awin-feed` échoue (flux Awin indisponible, erreur réseau), `transform-products` **ne se lance pas** et une erreur est inscrite dans `sync_logs`.
+
+### Mettre en place le pipeline (à faire une fois)
+
+**Étape 1** — Dans Supabase Dashboard → **Database → Extensions** :
+- Activer **`pg_cron`**
+- Activer **`pg_net`** (permet les appels HTTP depuis PostgreSQL)
+
+**Étape 2** — Déployer la Edge Function `run-pipeline` :
+Dans Supabase Dashboard → Edge Functions → Create a new function → nom : `run-pipeline` → coller le contenu de `supabase/functions/run-pipeline/index.ts`
+
+**Étape 3** — Appliquer la migration dans **SQL Editor** :
+Copier-coller le contenu de `supabase/migrations/20260623000004_pg_cron_pipeline.sql` et exécuter.
+
+**Étape 4** — Vérifier que le job est enregistré :
+```sql
+select jobname, schedule, active from cron.job;
+```
+Tu dois voir `capsule-pipeline-nightly` avec le schedule `0 3 * * *`.
+
+### Vérifier chaque matin que tout s'est bien passé
+
+Dans **Supabase Dashboard → Table Editor → sync_logs**, ou via SQL Editor :
+
+```sql
+-- Les 5 dernières exécutions du pipeline (les plus récentes en premier)
+select
+  function_name,
+  status,
+  products_processed,
+  errors_count,
+  error_detail,
+  ran_at
+from public.sync_logs
+order by ran_at desc
+limit 5;
+```
+
+**Ce que tu dois voir** si tout va bien :
+
+| function_name | status | products_processed | errors_count |
+|--------------|--------|-------------------|--------------|
+| run-pipeline | success | 0 | 0 |
+| transform-products | success | 15 | 0 |
+| sync-awin-feed | success | 15 | 0 |
+
+**Ce qui indique un problème** :
+- `status = error` → lire la colonne `error_detail` pour comprendre
+- Pas de ligne depuis >25h → le pipeline ne s'est pas déclenché (vérifier pg_cron)
+- `errors_count > 0` → certains produits ont échoué, pas bloquant pour les autres
+
+### Que faire si sync_logs montre une erreur ?
+
+| Situation | Action |
+|-----------|--------|
+| `error_detail` mentionne Awin / réseau | Attendre le lendemain — souvent transitoire. Si ça dure 2 jours, vérifier le secret `AWIN_API_TOKEN` dans Supabase → Edge Functions → Secrets |
+| `error_detail` mentionne Claude / Anthropic | Vérifier `ANTHROPIC_API_KEY` dans Supabase → Edge Functions → Secrets. Vérifier le quota sur console.anthropic.com |
+| Pas de ligne dans sync_logs depuis >25h | Supabase Dashboard → Database → Cron Jobs → vérifier que `capsule-pipeline-nightly` est actif |
+| `status = partial` | sync a réussi, transform a partiellement échoué. Les produits avec `style IS NULL` dans la table `products` sont retrouvables et seront reclassifiés au prochain run |
+
+### Note sur le score de match
+
+Le flag `match_scores_dirty = true` sur les nouveaux produits est positionné par `transform-products`. **Aucun traitement serveur supplémentaire n'est nécessaire** : le score de compatibilité est calculé côté client dans l'app React (fonction `calcMatchScore` dans `App.jsx`), à la volée quand une utilisatrice consulte son listing. Le flag est réservé à un usage futur (notifications "nouveau produit qui vous correspond").
+
+---
+
+## 8. Vérifier que raw_products se remplit
 
 ```sql
 -- Compter les produits par marchand
