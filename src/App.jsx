@@ -20,36 +20,41 @@ const MARQUES_LIST = [
 ].sort();
 
 const STYLES_LIST = [
-  { id:"minimaliste", label:"Minimalist",   desc:"Clean lines, neutral palette", emoji:"⬜" },
-  { id:"parisien",    label:"Parisian chic",desc:"Effortlessly elegant",         emoji:"🗼" },
-  { id:"casual",      label:"Casual cool",  desc:"Comfortable & on-trend",       emoji:"👟" },
-  { id:"boheme",      label:"Bohemian",     desc:"Floral, textured, free",       emoji:"🌿" },
-  { id:"streetwear",  label:"Streetwear",   desc:"Urban, graphic, bold",         emoji:"🔥" },
-  { id:"preppy",      label:"Preppy",       desc:"Classic and polished",         emoji:"🎀" },
-  { id:"sporty",      label:"Sporty chic",  desc:"Elegant athleisure",           emoji:"🏃‍♀️" },
-  { id:"romantique",  label:"Romantic",     desc:"Lace, ruffles, softness",      emoji:"🌸" },
+  { id:"minimaliste", label:"Minimaliste",  desc:"Lignes épurées, palette neutre",  emoji:"⬜" },
+  { id:"parisien",    label:"Parisien",     desc:"Élégance naturelle & intemporel",  emoji:"🗼" },
+  { id:"casual",      label:"Casual Chic",  desc:"Confortable & dans l'air du temps",emoji:"👟" },
+  { id:"boheme",      label:"Boho",         desc:"Fleurs, matières, liberté",        emoji:"🌿" },
+  { id:"streetwear",  label:"Streetwear",   desc:"Urbain, graphique, affirmé",       emoji:"🔥" },
+  { id:"classique",   label:"Classique",    desc:"Intemporel & soigné",              emoji:"🎀" },
+  { id:"sporty",      label:"Sportswear",   desc:"Athleisure élégant",               emoji:"🏃‍♀️" },
+  { id:"romantique",  label:"Romantique",   desc:"Dentelle, volants, douceur",       emoji:"🌸" },
 ];
 
 const TONS_LIST = [
-  { id:"neutres",    label:"Neutrals",          swatches:["#F5F0EB","#D4C5B0","#8B7355","#2C2C2C"] },
-  { id:"terreux",    label:"Earthy tones",       swatches:["#C4A882","#A0785A","#6B4C2A","#3D2B1F"] },
-  { id:"pastels",    label:"Pastels",            swatches:["#F9D5E5","#B5E8D5","#D5E8F9","#F9F0D5"] },
-  { id:"vifs",       label:"Bold colours",       swatches:["#FF3B3B","#FFB800","#00C16E","#0066FF"] },
-  { id:"sombres",    label:"Dark & rich",        swatches:["#1A1A2E","#16213E","#2D4A22","#3D1A1A"] },
-  { id:"monochrome", label:"Black & White",      swatches:["#FFFFFF","#C0C0C0","#606060","#000000"] },
+  { id:"noir",        label:"Noir",              swatches:["#1A1A1A","#2C2C2C","#3D1A1A","#1A1A2E"] },
+  { id:"blanc",       label:"Blanc & Crème",     swatches:["#FFFFFF","#F5F0EB","#F0EAD6","#E8DFD0"] },
+  { id:"beige",       label:"Beige & Camel",     swatches:["#F5F0EB","#D4C5B0","#C4A882","#A0785A"] },
+  { id:"gris",        label:"Gris & Marine",     swatches:["#C0C0C0","#808080","#16213E","#1A1A2E"] },
+  { id:"pastels",     label:"Pastel",            swatches:["#F9D5E5","#B5E8D5","#D5E8F9","#F9F0D5"] },
+  { id:"vifs",        label:"Coloré",            swatches:["#FF3B3B","#FFB800","#00C16E","#0066FF"] },
 ];
 
 const COUPES_LIST = [
-  { id:"loose",        label:"Loose / Oversized", emoji:"🌊" },
-  { id:"ajuste",       label:"Fitted",            emoji:"🔹" },
-  { id:"crop",         label:"Crop / Short",      emoji:"✂️" },
-  { id:"flare",        label:"Flared",            emoji:"🔔" },
-  { id:"straight",     label:"Straight",          emoji:"▬"  },
-  { id:"slouchy",      label:"Slouchy",           emoji:"☁️" },
-  { id:"taille_haute", label:"High-waisted",      emoji:"⬆️" },
-  { id:"taille_basse", label:"Low-rise",          emoji:"⬇️" },
-  { id:"midi",         label:"Midi length",       emoji:"📏" },
-  { id:"maxi",         label:"Maxi length",       emoji:"🧣" },
+  // Hauts
+  { id:"oversize",      label:"Oversize",        emoji:"🌊" },
+  { id:"cintre",        label:"Cintré/Ajusté",   emoji:"🔹" },
+  { id:"regular",       label:"Regular",         emoji:"▬"  },
+  { id:"crop",          label:"Crop/Court",      emoji:"✂️" },
+  { id:"asymetrique",   label:"Asymétrique",     emoji:"🔺" },
+  { id:"col_montant",   label:"Col montant",     emoji:"🔝" },
+  // Bas
+  { id:"slim",          label:"Slim",            emoji:"📌" },
+  { id:"wide_leg",      label:"Wide-leg",        emoji:"🔔" },
+  { id:"straight",      label:"Straight",        emoji:"📐" },
+  { id:"flare",         label:"Flare",           emoji:"🌀" },
+  { id:"taille_haute",  label:"Taille haute",    emoji:"⬆️" },
+  { id:"taille_basse",  label:"Taille basse",    emoji:"⬇️" },
+  { id:"mom_boyfriend", label:"Mom/Boyfriend",   emoji:"☁️" },
 ];
 
 const TAILLES_CONFIG = [

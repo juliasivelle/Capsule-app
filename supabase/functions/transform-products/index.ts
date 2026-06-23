@@ -7,18 +7,19 @@ const ANTHROPIC_API_KEY     = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 
 // ─── Enums (cohérents avec App.jsx STYLES_LIST / COUPES_LIST / TONS_LIST) ───
 const VALID_STYLES = [
-  "Minimalist", "Parisian chic", "Casual cool", "Bohemian",
-  "Streetwear", "Preppy", "Sporty chic", "Romantic",
+  "Minimaliste", "Parisien", "Casual Chic", "Boho",
+  "Streetwear", "Classique", "Sportswear", "Romantique",
 ] as const;
 
 const VALID_CUTS = [
-  "Loose / Oversized", "Fitted", "Crop / Short", "Flared",
-  "Straight", "Slouchy", "High-waisted", "Low-rise",
-  "Midi length", "Maxi length", "Standard",
+  // Hauts
+  "Oversize", "Cintré/Ajusté", "Regular", "Crop/Court", "Asymétrique", "Col montant",
+  // Bas
+  "Slim", "Wide-leg", "Straight", "Flare", "Taille haute", "Taille basse", "Mom/Boyfriend",
 ] as const;
 
-const VALID_GENDERS  = ["femme", "homme", "mixte"] as const;
-const VALID_TONES    = ["Neutrals", "Earthy tones", "Pastels", "Bold colours", "Dark & rich", "Black & White"] as const;
+const VALID_GENDERS  = ["femme", "homme", "enfant"] as const;
+const VALID_TONES    = ["Noir", "Blanc & Crème", "Beige & Camel", "Gris & Marine", "Pastel", "Coloré"] as const;
 const VALID_STATUSES = ["ok", "few", "none"] as const;
 
 type Style   = typeof VALID_STYLES[number];
@@ -29,37 +30,38 @@ type Status  = typeof VALID_STATUSES[number];
 
 // ─── Couleur → groupe de tons ─────────────────────────────────
 const COLOR_MAP: Record<string, Tone> = {
-  // Black & White
-  black: "Black & White", noir: "Black & White", charcoal: "Black & White",
-  white: "Black & White", blanc: "Black & White", "off-white": "Black & White",
-  ivory: "Black & White", cream: "Black & White", ecru: "Black & White",
-  // Neutrals
-  grey: "Neutrals", gray: "Neutrals", gris: "Neutrals", silver: "Neutrals",
-  "heather grey": "Neutrals",
-  // Earthy tones
-  camel: "Earthy tones", beige: "Earthy tones", sand: "Earthy tones",
-  taupe: "Earthy tones", nude: "Earthy tones", cognac: "Earthy tones",
-  brown: "Earthy tones", tan: "Earthy tones", khaki: "Earthy tones",
-  olive: "Earthy tones", terracotta: "Earthy tones", natural: "Earthy tones",
-  // Dark & rich
-  navy: "Dark & rich", marine: "Dark & rich", indigo: "Dark & rich",
-  "indigo blue": "Dark & rich", dark: "Dark & rich", burgundy: "Dark & rich",
-  wine: "Dark & rich", forest: "Dark & rich",
-  // Pastels
-  pink: "Pastels", rose: "Pastels", blush: "Pastels", "blush pink": "Pastels",
-  lavender: "Pastels", mint: "Pastels", "light blue": "Pastels",
-  "powder blue": "Pastels", lilac: "Pastels", peach: "Pastels",
-  "cream floral": "Pastels",
-  // Bold colours (fallback for everything else)
-  red: "Bold colours", blue: "Bold colours", green: "Bold colours",
-  yellow: "Bold colours", orange: "Bold colours", purple: "Bold colours",
-  multicolour: "Bold colours", print: "Bold colours", floral: "Bold colours",
+  // Noir
+  black: "Noir", noir: "Noir", charcoal: "Noir",
+  dark: "Noir", "dark navy": "Noir", burgundy: "Noir",
+  wine: "Noir", forest: "Noir",
+  // Blanc & Crème
+  white: "Blanc & Crème", blanc: "Blanc & Crème", "off-white": "Blanc & Crème",
+  ivory: "Blanc & Crème", cream: "Blanc & Crème", ecru: "Blanc & Crème",
+  // Beige & Camel
+  camel: "Beige & Camel", beige: "Beige & Camel", sand: "Beige & Camel",
+  taupe: "Beige & Camel", nude: "Beige & Camel", cognac: "Beige & Camel",
+  brown: "Beige & Camel", tan: "Beige & Camel", khaki: "Beige & Camel",
+  olive: "Beige & Camel", terracotta: "Beige & Camel", natural: "Beige & Camel",
+  // Gris & Marine
+  grey: "Gris & Marine", gray: "Gris & Marine", gris: "Gris & Marine",
+  silver: "Gris & Marine", "heather grey": "Gris & Marine",
+  navy: "Gris & Marine", marine: "Gris & Marine", indigo: "Gris & Marine",
+  "indigo blue": "Gris & Marine",
+  // Pastel
+  pink: "Pastel", rose: "Pastel", blush: "Pastel", "blush pink": "Pastel",
+  lavender: "Pastel", mint: "Pastel", "light blue": "Pastel",
+  "powder blue": "Pastel", lilac: "Pastel", peach: "Pastel",
+  "cream floral": "Pastel",
+  // Coloré (fallback pour tout le reste)
+  red: "Coloré", blue: "Coloré", green: "Coloré",
+  yellow: "Coloré", orange: "Coloré", purple: "Coloré",
+  multicolour: "Coloré", print: "Coloré", floral: "Coloré",
 };
 
 function normalizeTone(rawColour: string): Tone[] {
   if (!rawColour) return [];
   const key = rawColour.toLowerCase().trim();
-  return [COLOR_MAP[key] ?? "Bold colours"];
+  return [COLOR_MAP[key] ?? "Coloré"];
 }
 
 // ─── Catégorie par défaut (si merchant n'a pas de mapping) ────
@@ -133,18 +135,18 @@ async function classifyWithAI(product: {
 
   const textContent = {
     type: "text",
-    text: `You are a fashion classifier. Analyze this product and return ONLY a valid JSON object — no markdown, no explanation.
+    text: `Tu es un classificateur de mode. Analyse ce produit et renvoie UNIQUEMENT un objet JSON valide — sans markdown, sans explication.
 
-Product name: ${product.name}
-Description: ${product.description ?? "not provided"}
-Category: ${product.category}
-Colour: ${product.colour ?? "not provided"}
+Nom du produit : ${product.name}
+Description : ${product.description ?? "non fournie"}
+Catégorie : ${product.category}
+Couleur : ${product.colour ?? "non fournie"}
 
-Return exactly this JSON:
+Retourne exactement ce JSON :
 {
-  "style": one of ${JSON.stringify(VALID_STYLES)},
-  "cut": one of ${JSON.stringify(VALID_CUTS)},
-  "gender": one of ${JSON.stringify(VALID_GENDERS)}
+  "style": une valeur parmi ${JSON.stringify(VALID_STYLES)},
+  "cut": une valeur parmi ${JSON.stringify(VALID_CUTS)},
+  "gender": une valeur parmi ${JSON.stringify(VALID_GENDERS)}
 }`,
   };
 
