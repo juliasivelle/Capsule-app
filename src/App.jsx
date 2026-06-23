@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -89,48 +89,60 @@ const VET_COLORS = [
 ];
 
 const ALL_PRODUCTS = [
-  { id:1,  name:"Chemise oversize en popeline",       brand:"Sandro",       type:"Shirts",   price:195, color:"Off-white",   size:"S",      image:"https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&q=80", score:98, tag:"AI Pick" },
-  { id:2,  name:"Pantalon taille haute droit",         brand:"A.P.C.",      type:"Trousers", price:290, color:"Camel",       size:"38",     image:"https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80", score:95, tag:"Completes your look" },
-  { id:3,  name:"Pull col V en laine mérinos",         brand:"Arket",        type:"Knitwear", price:119, color:"Ecru",        size:"S",      image:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80", score:93, tag:"Trending" },
-  { id:4,  name:"Robe midi en satin",                  brand:"Rouje",        type:"Dresses",  price:245, color:"Blush pink",  size:"S",      image:"https://images.unsplash.com/photo-1572804013427-4d7ca7268217?w=400&q=80", score:91, tag:"New" },
-  { id:5,  name:"Veste en jean délavée",               brand:"Sézane",       type:"Jackets",  price:175, color:"Light blue",  size:"S",      image:"https://images.unsplash.com/photo-1544441893-675973e31985?w=400&q=80", score:88, tag:"Completes your look" },
+  { id:1,  name:"Chemise oversize en popeline",       brand:"Sandro",       type:"Shirts",   price:195, color:"Off-white",   size:"S",      image:"https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&q=80", score:98, tag:"Coup de cœur IA" },
+  { id:2,  name:"Pantalon taille haute droit",         brand:"A.P.C.",      type:"Trousers", price:290, color:"Camel",       size:"38",     image:"https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80", score:95, tag:"Complète ton dressing" },
+  { id:3,  name:"Pull col V en laine mérinos",         brand:"Arket",        type:"Knitwear", price:119, color:"Ecru",        size:"S",      image:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80", score:93, tag:"Tendance" },
+  { id:4,  name:"Robe midi en satin",                  brand:"Rouje",        type:"Dresses",  price:245, color:"Blush pink",  size:"S",      image:"https://images.unsplash.com/photo-1572804013427-4d7ca7268217?w=400&q=80", score:91, tag:"Nouveau" },
+  { id:5,  name:"Veste en jean délavée",               brand:"Sézane",       type:"Jackets",  price:175, color:"Light blue",  size:"S",      image:"https://images.unsplash.com/photo-1544441893-675973e31985?w=400&q=80", score:88, tag:"Complète ton dressing" },
   { id:6,  name:"T-shirt col rond coton pima",         brand:"Arket",        type:"T-shirts", price:49,  color:"White",       size:"S",      image:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80", score:86, tag:null },
-  { id:7,  name:"Manteau laine bouclette",             brand:"Sandro",       type:"Coats",    price:590, color:"Ivory",       size:"S",      image:"https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=80", score:94, tag:"AI Pick" },
-  { id:8,  name:"Jupe longue plissée",                 brand:"Rouje",        type:"Skirts",   price:185, color:"Terracotta",  size:"38",     image:"https://images.unsplash.com/photo-1583496661160-fb5974ca5e53?w=400&q=80", score:82, tag:"Discovery" },
+  { id:7,  name:"Manteau laine bouclette",             brand:"Sandro",       type:"Coats",    price:590, color:"Ivory",       size:"S",      image:"https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=80", score:94, tag:"Coup de cœur IA" },
+  { id:8,  name:"Jupe longue plissée",                 brand:"Rouje",        type:"Skirts",   price:185, color:"Terracotta",  size:"38",     image:"https://images.unsplash.com/photo-1583496661160-fb5974ca5e53?w=400&q=80", score:82, tag:"Découverte" },
   { id:9,  name:"Blazer structuré double boutonnage",  brand:"A.P.C.",      type:"Blazers",  price:450, color:"Black",       size:"S",      image:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80", score:90, tag:null },
-  { id:10, name:"Jean straight leg 90s",               brand:"Sézane",       type:"Jeans",    price:135, color:"Indigo blue", size:"38",     image:"https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&q=80", score:87, tag:"Trending" },
-  { id:11, name:"Blouse en soie imprimée",             brand:"Rouje",        type:"Blouses",  price:215, color:"Cream floral",size:"S",      image:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80", score:85, tag:"New" },
+  { id:10, name:"Jean straight leg 90s",               brand:"Sézane",       type:"Jeans",    price:135, color:"Indigo blue", size:"38",     image:"https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&q=80", score:87, tag:"Tendance" },
+  { id:11, name:"Blouse en soie imprimée",             brand:"Rouje",        type:"Blouses",  price:215, color:"Cream floral",size:"S",      image:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80", score:85, tag:"Nouveau" },
   { id:12, name:"Sac à main en cuir grainé",           brand:"Sandro",       type:"Bags",     price:395, color:"Cognac",      size:"One size",image:"https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80", score:79, tag:null },
-  { id:13, name:"Chemise en lin froissé",              brand:"Balzac Paris",  type:"Shirts",   price:89,  color:"Sand",        size:"S",      image:"https://images.unsplash.com/photo-1602810316498-ab67cf68c8e1?w=400&q=80", score:84, tag:"Discovery" },
-  { id:14, name:"Bottines à talon carré",              brand:"Sézane",       type:"Boots",    price:265, color:"Camel",       size:"38",     image:"https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80", score:92, tag:"AI Pick" },
+  { id:13, name:"Chemise en lin froissé",              brand:"Balzac Paris",  type:"Shirts",   price:89,  color:"Sand",        size:"S",      image:"https://images.unsplash.com/photo-1602810316498-ab67cf68c8e1?w=400&q=80", score:84, tag:"Découverte" },
+  { id:14, name:"Bottines à talon carré",              brand:"Sézane",       type:"Boots",    price:265, color:"Camel",       size:"38",     image:"https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80", score:92, tag:"Coup de cœur IA" },
   { id:15, name:"Cardigan long ouvert",                brand:"A.P.C.",      type:"Knitwear", price:320, color:"Heather grey", size:"S",      image:"https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&q=80", score:81, tag:null },
-  { id:16, name:"Robe chemise en coton",               brand:"Balzac Paris",  type:"Dresses",  price:145, color:"Ecru",        size:"S",      image:"https://images.unsplash.com/photo-1572804013427-4d7ca7268217?w=400&q=80", score:83, tag:"Discovery" },
+  { id:16, name:"Robe chemise en coton",               brand:"Balzac Paris",  type:"Dresses",  price:145, color:"Ecru",        size:"S",      image:"https://images.unsplash.com/photo-1572804013427-4d7ca7268217?w=400&q=80", score:83, tag:"Découverte" },
 ];
 
 const TAG_COLORS = {
-  "AI Pick":             { bg:"#0F0F0F", color:"#F5F0EB" },
-  "Completes your look": { bg:"#C4A882", color:"#1A1A1A" },
-  "Trending":            { bg:"#E8D5C4", color:"#1A1A1A" },
-  "New":                 { bg:"#D4E8C4", color:"#1A1A1A" },
-  "Discovery":           { bg:"#C4D4E8", color:"#1A1A1A" },
+  "Coup de cœur IA":     { bg:"rgba(181,105,74,.92)",  color:"#fff" },
+  "Complète ton dressing":{ bg:"rgba(90,128,96,.92)",   color:"#fff" },
+  "Tendance":            { bg:"rgba(28,21,16,.85)",    color:"#fff" },
+  "Découverte":          { bg:"rgba(212,160,144,.9)",  color:"#1C1510" },
+  "Nouveau":             { bg:"rgba(246,242,236,.95)", color:"#1C1510" },
 };
 
 const TYPES = [
-  { key:"All",      label:"Tout" },
-  { key:"T-shirts", label:"T-shirts" },
-  { key:"Shirts",   label:"Chemises" },
-  { key:"Blouses",  label:"Blouses" },
-  { key:"Knitwear", label:"Pulls" },
-  { key:"Trousers", label:"Pantalons" },
-  { key:"Jeans",    label:"Jeans" },
-  { key:"Skirts",   label:"Jupes" },
-  { key:"Dresses",  label:"Robes" },
-  { key:"Blazers",  label:"Blazers" },
-  { key:"Jackets",  label:"Vestes" },
-  { key:"Coats",    label:"Manteaux" },
-  { key:"Boots",    label:"Chaussures" },
-  { key:"Bags",     label:"Sacs" },
+  { key:"All",        label:"Tout" },
+  { key:"Hauts",      label:"Hauts" },
+  { key:"Chemises",   label:"Chemises" },
+  { key:"Pulls",      label:"Pulls" },
+  { key:"Vestes",     label:"Vestes" },
+  { key:"Manteaux",   label:"Manteaux" },
+  { key:"Robes",      label:"Robes" },
+  { key:"Jupes",      label:"Jupes" },
+  { key:"Pantalons",  label:"Pantalons" },
+  { key:"Jeans",      label:"Jeans" },
+  { key:"Chaussures", label:"Chaussures" },
+  { key:"Accessoires",label:"Accessoires" },
 ];
+
+const TYPE_MAP = {
+  "Hauts":       ["T-shirts","Shirts","Blouses","Knitwear"],
+  "Chemises":    ["Shirts","Blouses"],
+  "Pulls":       ["Knitwear"],
+  "Vestes":      ["Jackets","Blazers"],
+  "Manteaux":    ["Coats"],
+  "Robes":       ["Dresses"],
+  "Jupes":       ["Skirts"],
+  "Pantalons":   ["Trousers"],
+  "Jeans":       ["Jeans"],
+  "Chaussures":  ["Boots"],
+  "Accessoires": ["Bags"],
+};
 
 // ═══════════════════════════════════════════════════════════════
 // AI HELPER
@@ -832,6 +844,7 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
   const [filterType, setFilterType]         = useState("All");
   const [sortMode, setSortMode]             = useState("relevance");
   const [showWishlist, setShowWishlist]     = useState(false);
+  const [avatarDdOpen, setAvatarDdOpen]     = useState(false);
   // aiInsights est intentionnellement réinitialisé à chaque remount (changement de profil)
   // ce qui invalide le cache IA automatiquement après une édition de profil
   const [aiInsights, setAiInsights]         = useState({});
@@ -856,7 +869,7 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
 
   const displayed = ALL_PRODUCTS
     .filter(p => filterBrand==="All" || p.brand===filterBrand)
-    .filter(p => filterType==="All"  || p.type===filterType)
+    .filter(p => filterType==="All"  || (TYPE_MAP[filterType] || [filterType]).includes(p.type) || p.category===filterType)
     .sort((a,b) => sortMode==="relevance" ? b.score-a.score : sortMode==="asc" ? a.price-b.price : b.price-a.price);
 
   const wishlistProducts = ALL_PRODUCTS.filter(p => wishlist.includes(p.id));
@@ -893,10 +906,8 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
   return (
     <div className="ls-root">
       <header className="ls-header">
-        <div className="ls-header-left">
-          <div className="ls-logo">
-            CAPS<span style={{color:"#C4694A"}}>U</span>LE
-          </div>
+        <div className="ls-logo">
+          CAPS<span style={{color:"#B5694A",fontStyle:"italic"}}>U</span>LE
         </div>
         <div className="ls-header-right">
           <button className="ls-icon-btn" aria-label="Rechercher">
@@ -906,31 +917,58 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="ls-badge">{wishlist.length}</span>}
           </button>
-          <button className="ls-icon-btn ls-avatar-btn" onClick={() => setShowProfile(true)} aria-label="Mon profil">
-            {profile?.prenom?.[0]||"P"}
-          </button>
+          <div style={{position:"relative"}}>
+            <button
+              onClick={() => setAvatarDdOpen(o => !o)}
+              style={{display:"flex",alignItems:"center",gap:".25rem",background:"none",border:"1px solid #EAE4DA",borderRadius:"9999px",padding:".2rem .45rem .2rem .2rem",cursor:"pointer"}}
+            >
+              <div style={{width:"22px",height:"22px",borderRadius:"50%",background:"#B5694A",color:"#fff",fontSize:".65rem",fontFamily:"'Jost',sans-serif",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                {profile?.prenom?.[0]||"P"}
+              </div>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#28211C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
+            </button>
+            {avatarDdOpen && (
+              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#fff",border:"1px solid #EAE4DA",borderRadius:"10px",boxShadow:"0 10px 30px rgba(0,0,0,.1)",minWidth:"180px",zIndex:200,overflow:"hidden"}}>
+                <button onClick={() => { setAvatarDdOpen(false); setShowProfile(true); }} style={{display:"block",width:"100%",padding:".65rem 1rem",border:"none",background:"none",textAlign:"left",fontSize:".82rem",color:"#28211C",cursor:"pointer",fontFamily:"'Jost',sans-serif"}}>
+                  Modifier mon profil
+                </button>
+                <button onClick={() => { setAvatarDdOpen(false); onSignOut(); }} style={{display:"block",width:"100%",padding:".65rem 1rem",border:"none",borderTop:"1px solid #EAE4DA",background:"none",textAlign:"left",fontSize:".82rem",color:"#28211C",cursor:"pointer",fontFamily:"'Jost',sans-serif"}}>
+                  Se déconnecter
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Barre profil noire */}
+      {/* Barre profil */}
       <div className="ls-profile-bar">
-        <span className="ls-profile-bar-text">
-          Profil&nbsp;: <strong>{profile?.prenom||"—"}</strong>
-          {profile?.style && <>&nbsp;|&nbsp;{profile.style}</>}
-        </span>
-        <span className="ls-profile-bar-count">{displayed.length} pièces sélectionnées</span>
+        <div style={{display:"flex",alignItems:"center",gap:".5rem",flexWrap:"wrap"}}>
+          <span style={{fontSize:".78rem"}}>
+            Profil&nbsp;:&nbsp;<em style={{fontFamily:"'Playfair Display',serif",color:"#D4A090",fontStyle:"italic"}}>{profile?.prenom||"Vous"}</em>
+          </span>
+          {profile?.style && (
+            <span style={{background:"rgba(255,255,255,.1)",borderRadius:"9999px",padding:".15rem .55rem",fontSize:".68rem",flexShrink:0}}>
+              {STYLES_LIST.find(s=>s.id===profile.style)?.label || profile.style}
+            </span>
+          )}
+        </div>
+        <span className="ls-profile-bar-count">{displayed.length} pièces</span>
       </div>
 
-      {/* Filtres */}
-      <div className="ls-controls">
-        <div className="ls-type-scroll">
-          {TYPES.map(t => (
-            <button key={t.key} onClick={() => setFilterType(t.key)} className={`ls-chip${filterType===t.key?" active":""}`}>{t.label}</button>
-          ))}
-        </div>
-        <div className="ls-right-ctrl">
+      {/* Catégories */}
+      <div className="ls-categories">
+        {TYPES.map(t => (
+          <button key={t.key} onClick={() => setFilterType(t.key)} className={`ls-chip${filterType===t.key?" active":""}`}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* Filtres marque + tri */}
+      <div className="ls-filter-bar">
+        <div style={{display:"flex",gap:".5rem",alignItems:"center"}}>
           <select value={filterBrand} onChange={e => setFilterBrand(e.target.value)} className="ls-select">
-            {brands.map(b => <option key={b}>{b}</option>)}
+            <option value="All">Toutes les marques</option>
+            {brands.filter(b=>b!=="All").map(b => <option key={b}>{b}</option>)}
           </select>
           <select value={sortMode} onChange={e => setSortMode(e.target.value)} className="ls-select">
             <option value="relevance">Pertinence IA</option>
@@ -938,6 +976,7 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
             <option value="desc">Prix ↓</option>
           </select>
         </div>
+        <span style={{fontSize:".72rem",color:"#7C7268"}}>{displayed.length} pièce{displayed.length!==1?"s":""}</span>
       </div>
 
       <div className="ls-grid">
@@ -967,24 +1006,41 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
 }
 
 function ProductCard({ product, index, isWished, onWish, onClick }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const tagConf = TAG_COLORS[product.tag];
   return (
-    <div className="ls-card af" style={{animationDelay:`${index*.04}s`}} onClick={onClick}>
-      <div className="ls-card-img-wrap">
-        <img src={product.image} alt={product.name} className="ls-card-img"
-          onError={e=>{e.target.src=`https://placehold.co/400x500/E8E0D5/8B7355?text=${encodeURIComponent(product.brand)}`;}}/>
-        {product.tag && <div className="ls-tag" style={{background:TAG_COLORS[product.tag]?.bg,color:TAG_COLORS[product.tag]?.color}}>{product.tag}</div>}
-        <div className="ls-score"><span className="ls-score-lbl">Match</span><span className="ls-score-val">{product.score}%</span></div>
-        <div className="ls-card-hover"><span>View details →</span></div>
-        <button className="ls-wish" style={{color:isWished?"#C4A882":"#fff"}} onClick={e=>onWish(product.id,e)}>{isWished?"♥":"♡"}</button>
+    <div className="af" style={{cursor:"pointer",animationDelay:`${index*.04}s`}} onClick={onClick}>
+      <div style={{position:"relative",aspectRatio:"3/4",borderRadius:"2px",overflow:"hidden",background:"#EAE4DA"}}>
+        {!imgLoaded && <div style={{position:"absolute",inset:0,background:"#EAE4DA"}}/>}
+        <img src={product.image} alt={product.name}
+          onLoad={()=>setImgLoaded(true)}
+          onError={e=>{e.target.src=`https://placehold.co/400x533/EAE4DA/7C7268?text=${encodeURIComponent(product.brand)}`;setImgLoaded(true);}}
+          style={{width:"100%",height:"100%",objectFit:"cover",display:"block",opacity:imgLoaded?1:0,transition:"opacity .4s"}}/>
+        {product.tag && tagConf && (
+          <span style={{position:"absolute",top:".5rem",left:".5rem",background:tagConf.bg,color:tagConf.color,padding:".2rem .55rem",borderRadius:"100px",fontSize:".6rem",fontWeight:500,letterSpacing:".04em",backdropFilter:"blur(4px)",lineHeight:1.4}}>
+            {product.tag}
+          </span>
+        )}
+        <button
+          style={{position:"absolute",top:".5rem",right:".5rem",width:"28px",height:"28px",borderRadius:"50%",background:"rgba(255,255,255,.92)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}
+          onClick={e=>onWish(product.id,e)}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={isWished?"#B5694A":"none"} stroke="#B5694A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
       </div>
-      <div className="ls-card-body">
-        <div className="ls-card-brand">{product.brand}</div>
-        <div className="ls-card-name">{product.name}</div>
-        <div className="ls-card-meta">
-          <span className="ls-dot"/><span className="ls-card-color">{product.color}</span>
-          <span className="ls-card-size">Size {product.size}</span>
+      <div style={{paddingTop:".5rem"}}>
+        <div style={{fontSize:".6rem",textTransform:"uppercase",letterSpacing:".12em",color:"#7C7268"}}>{product.brand}</div>
+        <div style={{fontSize:".82rem",color:"#28211C",fontWeight:300,margin:".1rem 0 .35rem",lineHeight:1.35}}>{product.name}</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span style={{fontSize:".85rem",color:"#28211C"}}>{product.price} €</span>
+          <div style={{display:"flex",alignItems:"center",gap:".3rem"}}>
+            <div style={{width:"24px",height:"3px",background:"#EAE4DA",borderRadius:"2px",overflow:"hidden"}}>
+              <div style={{width:`${product.score}%`,height:"100%",background:"#B5694A"}}/>
+            </div>
+            <span style={{fontSize:".65rem",color:"#B5694A"}}>{product.score}%</span>
+          </div>
         </div>
-        <div className="ls-card-price">€{product.price}</div>
       </div>
     </div>
   );
@@ -1019,7 +1075,7 @@ function ProductModal({ product, isWished, onWish, onClose, insight, loading }) 
               {[["Colour",product.color],["Size",product.size],["Category",product.type],["Price",`€${product.price}`]].map(([l,v])=>(
                 <div key={l} className="modal-detail">
                   <span className="modal-detail-lbl">{l}</span>
-                  <span className="modal-detail-val" style={l==="Price"?{fontFamily:"'Cormorant Garamond',serif",fontSize:20,fontWeight:600}:{}}>{v}</span>
+                  <span className="modal-detail-val" style={l==="Price"?{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600}:{}}>{v}</span>
                 </div>
               ))}
             </div>
@@ -1064,7 +1120,7 @@ function WishlistPanel({ products, onClose, onRemove, onOpen }) {
               ))}
               <div className="panel-total">
                 <span>Estimated total</span>
-                <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,fontWeight:600,color:"#0F0F0F"}}>€{products.reduce((s,p)=>s+p.price,0)}</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,color:"#0F0F0F"}}>€{products.reduce((s,p)=>s+p.price,0)}</span>
               </div>
             </div>
         }
@@ -1086,7 +1142,7 @@ function ProfilePanel({ profile, onClose, onEdit, onSignOut }) {
           <div className="profile-row">
             <div className="profile-avatar">{profile?.prenom?.[0]}</div>
             <div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,fontWeight:600,color:"#0F0F0F"}}>{profile?.prenom}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:600,color:"#0F0F0F"}}>{profile?.prenom}</div>
               <div style={{fontSize:10,color:"#8B7355",letterSpacing:".1em",textTransform:"uppercase"}}>Capsule member</div>
             </div>
           </div>
@@ -1116,9 +1172,9 @@ function ProfilePanel({ profile, onClose, onEdit, onSignOut }) {
 // CSS
 // ═══════════════════════════════════════════════════════════════
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
+:root{--cream:#F6F2EC;--bone:#EAE4DA;--stone:#7C7268;--charcoal:#28211C;--ink:#1C1510;--accent:#B5694A;--accent-light:#D4A090;--accent-pale:#FAF0EB}
+body{background:var(--cream);font-family:'Jost',sans-serif}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#C4A882;border-radius:2px}
 @keyframes fu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fi{from{opacity:0}to{opacity:1}}
@@ -1134,7 +1190,7 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .ob-root{display:flex;min-height:100vh}
 .ob-side{width:268px;min-height:100vh;background:#0F0F0F;padding:40px 30px;display:flex;flex-direction:column;position:sticky;top:0;flex-shrink:0;overflow:hidden}
 .ob-brand{margin-bottom:48px}
-.ob-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.06em;color:#F7F3EE;line-height:1}
+.ob-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;letter-spacing:.06em;color:#F7F3EE;line-height:1}
 .ob-tagline{font-size:9px;color:#6B5A4A;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
 .ob-steps{display:flex;flex-direction:column;gap:4px;flex:1}
 .ob-step-item{display:flex;align-items:center;gap:12px;font-size:12px;color:#2E2E2E;transition:color .2s;padding:5px 0}
@@ -1152,7 +1208,7 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .ob-content{flex:1;padding:48px 56px 24px;overflow-y:auto}
 .ob-section{max-width:580px}
 .ob-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#C4A882;font-weight:500;margin-bottom:10px}
-.ob-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:400;color:#0F0F0F;line-height:1.2;margin-bottom:12px}
+.ob-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:400;color:#0F0F0F;line-height:1.2;margin-bottom:12px}
 .ob-desc{font-size:14px;color:#8B7355;line-height:1.75;margin-bottom:24px;font-weight:300}
 .ob-hint{font-size:12px;color:#B0A090;font-style:italic;margin-top:14px}
 .ob-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#8B7355;font-weight:500;margin-bottom:8px}
@@ -1233,51 +1289,22 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .next-btn.dis{opacity:.35;cursor:not-allowed}
 
 /* ── LISTING ── */
-.ls-root{min-height:100vh;background:#F7F3EE}
-.ls-header{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;border-bottom:1px solid #E5DDD0;background:rgba(247,243,238,.97);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.ls-header-left{display:flex;align-items:center}
-.ls-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.18em;color:#0F0F0F;line-height:1;text-transform:uppercase}
-.ls-header-right{display:flex;align-items:center;gap:4px}
-.ls-icon-btn{width:38px;height:38px;border:none;border-radius:50%;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#0F0F0F;transition:background .15s;position:relative;padding:0}
-.ls-icon-btn:hover{background:#EFE9E0}
-.ls-avatar-btn{background:#0F0F0F;color:#F7F3EE;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;letter-spacing:.04em}
-.ls-avatar-btn:hover{background:#2C2C2C}
-.ls-badge{position:absolute;top:2px;right:2px;background:#C4694A;color:#fff;border-radius:50%;width:14px;height:14px;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;pointer-events:none}
-.ls-profile-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 26px;background:#0F0F0F;color:#F7F3EE}
-.ls-profile-bar-text{font-size:11px;letter-spacing:.04em;font-weight:300}
-.ls-profile-bar-text strong{font-weight:600;color:#F7F3EE}
-.ls-profile-bar-count{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8B7355}
-.ls-controls{display:flex;align-items:center;justify-content:space-between;padding:11px 26px;gap:12px;border-bottom:1px solid #E5DDD0;flex-wrap:wrap}
-.ls-type-scroll{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:2px}
-.ls-chip{padding:6px 13px;border-radius:100px;border:1px solid #D4C5B0;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;background:transparent;color:#0F0F0F;font-family:inherit}
-.ls-chip.active{background:#0F0F0F;color:#F7F3EE;border-color:#0F0F0F}
-.ls-chip:hover:not(.active){border-color:#0F0F0F}
-.ls-right-ctrl{display:flex;gap:8px}
-.ls-select{padding:6px 12px;border:1px solid #D4C5B0;border-radius:100px;background:#fff;font-size:12px;cursor:pointer;color:#0F0F0F;font-family:inherit;outline:none}
-.ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:20px;padding:26px}
-
-.ls-card{background:#fff;border-radius:10px;overflow:hidden;border:1px solid #EDE5DA;cursor:pointer;transition:box-shadow .25s,transform .25s}
-.ls-card:hover{box-shadow:0 10px 36px rgba(0,0,0,.10);transform:translateY(-3px)}
-.ls-card-img-wrap{position:relative;overflow:hidden;aspect-ratio:3/4}
-.ls-card-img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.ls-card:hover .ls-card-img{transform:scale(1.04)}
-.ls-tag{position:absolute;top:12px;left:12px;padding:3px 9px;border-radius:100px;font-size:9px;font-weight:600;letter-spacing:.06em;z-index:2;white-space:nowrap;text-transform:uppercase}
-.ls-score{position:absolute;bottom:12px;left:12px;background:rgba(247,243,238,.93);backdrop-filter:blur(4px);padding:4px 10px;border-radius:100px;display:flex;gap:4px;align-items:center}
-.ls-score-lbl{font-size:9px;color:#8B7355;text-transform:uppercase;letter-spacing:.06em}
-.ls-score-val{font-size:13px;font-weight:600;color:#0F0F0F}
-.ls-card-hover{position:absolute;inset:0;background:rgba(15,15,15,.28);display:flex;align-items:flex-end;justify-content:center;padding:16px;opacity:0;transition:opacity .3s}
-.ls-card:hover .ls-card-hover{opacity:1}
-.ls-card-hover span{color:#fff;font-size:12px;letter-spacing:.08em}
-.ls-wish{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.28);backdrop-filter:blur(4px);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s;z-index:3}
-.ls-wish:hover{transform:scale(1.18)}
-.ls-card-body{padding:12px 14px}
-.ls-card-brand{font-size:9px;font-weight:600;letter-spacing:.12em;color:#8B7355;text-transform:uppercase;margin-bottom:3px}
-.ls-card-name{font-size:13px;color:#0F0F0F;line-height:1.4;margin-bottom:7px}
-.ls-card-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.ls-dot{width:8px;height:8px;border-radius:50%;background:#C4A882;border:1px solid #D4C5B0;flex-shrink:0}
-.ls-card-color{font-size:11px;color:#8B7355;flex:1}
-.ls-card-size{font-size:11px;color:#8B7355;background:#F0EAE2;padding:2px 7px;border-radius:100px}
-.ls-card-price{font-size:15px;font-family:'Cormorant Garamond',serif;color:#0F0F0F;font-weight:600}
+.ls-root{min-height:100vh;background:var(--cream)}
+.ls-header{display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;height:56px;border-bottom:1px solid var(--bone);background:var(--cream);position:sticky;top:0;z-index:100}
+.ls-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:500;letter-spacing:.15em;color:var(--ink);line-height:1}
+.ls-header-right{display:flex;align-items:center;gap:.5rem}
+.ls-icon-btn{width:34px;height:34px;border:none;border-radius:50%;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:background .15s;position:relative;padding:0}
+.ls-icon-btn:hover{background:var(--bone)}
+.ls-badge{position:absolute;top:0;right:0;background:var(--accent);color:#fff;border-radius:50%;width:14px;height:14px;font-size:.55rem;display:flex;align-items:center;justify-content:center;font-weight:700;pointer-events:none}
+.ls-profile-bar{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1.25rem;background:var(--ink);color:#fff;gap:.5rem;flex-wrap:wrap}
+.ls-profile-bar-count{font-size:.68rem;color:rgba(255,255,255,.5);white-space:nowrap}
+.ls-categories{display:flex;gap:.5rem;overflow-x:auto;padding:.9rem 1.25rem .6rem;scrollbar-width:none}
+.ls-categories::-webkit-scrollbar{display:none}
+.ls-chip{flex-shrink:0;padding:.4rem .9rem;border-radius:9999px;font-size:.78rem;border:none;background:var(--bone);color:var(--charcoal);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.ls-chip.active{background:var(--ink);color:#fff}
+.ls-filter-bar{display:flex;align-items:center;justify-content:space-between;padding:.3rem 1.25rem .8rem;gap:.5rem;border-bottom:1px solid var(--bone)}
+.ls-select{padding:.35rem .8rem;border:1px solid var(--bone);border-radius:9999px;background:#fff;font-size:.75rem;cursor:pointer;color:var(--charcoal);font-family:inherit;outline:none;appearance:none;-webkit-appearance:none}
+.ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.75rem;padding:1rem 1.25rem}
 
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,15,15,.65);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fi .2s ease}
@@ -1289,14 +1316,14 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .modal-img{width:100%;height:100%;object-fit:cover;min-height:340px}
 .modal-info{padding:34px 30px;display:flex;flex-direction:column;gap:16px}
 .modal-brand{font-size:9px;font-weight:600;letter-spacing:.14em;color:#8B7355;text-transform:uppercase}
-.modal-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#0F0F0F;line-height:1.25}
+.modal-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:#0F0F0F;line-height:1.25}
 .modal-match{display:flex;flex-direction:column;gap:5px}
 .modal-match-lbl{display:flex;justify-content:space-between;font-size:11px;color:#8B7355}
 .modal-track{height:3px;background:#E5DDD0;border-radius:3px;overflow:hidden}
 .modal-fill{height:100%;background:linear-gradient(90deg,#C4A882,#0F0F0F);border-radius:3px;transition:width .8s ease}
 .modal-insight{background:#EFE9E0;border-radius:9px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start}
 .modal-insight-icon{color:#C4A882;font-size:13px;flex-shrink:0;margin-top:2px}
-.modal-insight-text{font-size:14px;color:#3D2B1F;line-height:1.6;font-style:italic;font-family:'Cormorant Garamond',serif}
+.modal-insight-text{font-size:14px;color:#3D2B1F;line-height:1.6;font-style:italic;font-family:'Playfair Display',serif}
 .modal-loading{font-size:13px;color:#8B7355;font-style:italic;animation:sh 1.2s infinite}
 .modal-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-detail{display:flex;flex-direction:column;gap:2px}
@@ -1314,7 +1341,7 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .panel-overlay{position:fixed;inset:0;background:rgba(15,15,15,.4);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end;animation:fi .2s ease}
 .panel-box{background:#F7F3EE;width:380px;height:100%;overflow-y:auto;box-shadow:-20px 0 50px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:pi .28s cubic-bezier(.22,.68,0,1.1) both}
 .panel-header{display:flex;align-items:center;justify-content:space-between;padding:24px 20px 16px;border-bottom:1px solid #E5DDD0;flex-shrink:0}
-.panel-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#0F0F0F}
+.panel-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:#0F0F0F}
 .panel-sub{font-size:11px;color:#8B7355;margin-top:2px}
 .panel-list{padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
 .panel-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:9px;background:#fff;border:1px solid #EDE5DA;cursor:pointer;transition:box-shadow .2s}
@@ -1323,11 +1350,11 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .panel-item-info{flex:1;min-width:0}
 .panel-item-brand{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8B7355;font-weight:600;margin-bottom:2px}
 .panel-item-name{font-size:12px;color:#0F0F0F;line-height:1.4;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.panel-item-price{font-family:'Cormorant Garamond',serif;font-size:15px;color:#0F0F0F;font-weight:600}
+.panel-item-price{font-family:'Playfair Display',serif;font-size:15px;color:#0F0F0F;font-weight:600}
 .panel-total{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #E5DDD0;margin-top:4px;font-size:12px;color:#8B7355}
 .panel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8B7355;gap:8px;font-size:13px}
 .profile-row{display:flex;align-items:center;gap:13px;padding-bottom:4px}
-.profile-avatar{width:48px;height:48px;background:#0F0F0F;color:#F7F3EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;flex-shrink:0}
+.profile-avatar{width:48px;height:48px;background:#0F0F0F;color:#F7F3EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:600;flex-shrink:0}
 .profile-section{display:flex;flex-direction:column;gap:5px;padding:11px 12px;background:#fff;border-radius:9px;border:1px solid #EDE5DA}
 .profile-section-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8B7355;font-weight:500}
 .profile-section-val{font-size:13px;color:#0F0F0F}
@@ -1340,10 +1367,11 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
   .ouv-grid{grid-template-columns:1fr}
   .style-grid{grid-template-columns:repeat(2,1fr)}
   .ob-title{font-size:28px}
-  .ls-header{padding:11px 16px}
-  .ls-profile-bar{padding:7px 16px}
-  .ls-controls{padding:9px 14px}
-  .ls-grid{padding:12px;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .ls-header{padding:0 1rem}
+  .ls-profile-bar{padding:.5rem 1rem}
+  .ls-categories{padding:.75rem 1rem .5rem}
+  .ls-filter-bar{padding:.3rem 1rem .7rem}
+  .ls-grid{padding:.75rem 1rem;gap:.6rem;grid-template-columns:1fr 1fr}
   .modal-inner{grid-template-columns:1fr}
   .modal-img-wrap{border-radius:14px 14px 0 0;max-height:240px}
   .modal-img{min-height:0}
@@ -1353,9 +1381,9 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 /* ── AUTH ── */
 .auth-root{min-height:100vh;background:#F7F3EE;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-card{background:#fff;border:1px solid #EDE5DA;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.06)}
-.auth-logo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;letter-spacing:.06em;color:#0F0F0F;text-align:center;margin-bottom:4px}
+.auth-logo{font-family:'Playfair Display',serif;font-size:32px;font-weight:600;letter-spacing:.06em;color:#0F0F0F;text-align:center;margin-bottom:4px}
 .auth-tagline{font-size:9px;color:#C4A882;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-bottom:28px}
-.auth-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:#0F0F0F;margin-bottom:6px}
+.auth-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:400;color:#0F0F0F;margin-bottom:6px}
 .auth-desc{font-size:13px;color:#8B7355;margin-bottom:22px;line-height:1.6;font-weight:300}
 .auth-google{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px;border:1px solid #DDD5C8;border-radius:8px;background:#fff;font-size:13px;font-family:inherit;cursor:pointer;color:#0F0F0F;transition:border-color .2s,background .2s;margin-bottom:16px}
 .auth-google:hover:not(:disabled){border-color:#8B7355;background:#F7F3EE}
@@ -1370,3 +1398,4 @@ body{background:#F7F3EE;font-family:'DM Sans',sans-serif}
 .auth-link-inline:hover{color:#0F0F0F}
 .auth-switch{text-align:center;font-size:12px;color:#8B7355;margin-top:16px}
 `;
+
