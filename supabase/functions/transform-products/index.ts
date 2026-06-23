@@ -261,9 +261,11 @@ Deno.serve(async (_req) => {
           console.warn(`[${raw.awin_product_id}] Unknown category: "${raw.merchant_category}"`);
         }
 
-        // Déterminer si une classification IA est nécessaire
-        const existing     = existingMap.get(raw.awin_product_id);
-        const needsAI      = !existing?.style || existing?.name !== raw.product_name;
+        // Classifier si style est absent (nouveau produit ou pas encore classifié)
+        const existing = existingMap.get(raw.awin_product_id);
+        const needsAI  = !existing?.style;
+
+        console.log(`[${raw.awin_product_id}] style=${existing?.style ?? "null"} → needsAI=${needsAI}`);
 
         let aiResult: AIClassification | null = null;
         if (needsAI) {
@@ -275,10 +277,13 @@ Deno.serve(async (_req) => {
               colour:      raw.raw_colour,
               image_url:   imageUrl,
             });
-            if (aiResult) classified++;
+            if (aiResult) {
+              classified++;
+            } else {
+              console.warn(`[${raw.awin_product_id}] classifyWithAI returned null — vérifier ANTHROPIC_API_KEY dans les secrets Supabase`);
+            }
           } catch (aiErr) {
             console.error(`[${raw.awin_product_id}] AI classification error:`, aiErr);
-            // Ne pas bloquer — produit reste style=NULL, retrouvable via SELECT * FROM products WHERE style IS NULL
           }
         }
 
