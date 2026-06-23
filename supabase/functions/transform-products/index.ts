@@ -128,8 +128,9 @@ async function classifyWithAI(product: {
   colour: string | null;
   image_url: string | null;
 }): Promise<AIClassification | null> {
+  console.log(`[classifyWithAI] called for: "${product.name}" | ANTHROPIC_API_KEY set: ${!!ANTHROPIC_API_KEY}`);
   if (!ANTHROPIC_API_KEY) {
-    console.warn("No ANTHROPIC_API_KEY — skipping AI classification");
+    console.error("[classifyWithAI] ANTHROPIC_API_KEY is empty — ajoute ce secret dans Supabase Dashboard → Edge Functions → Secrets");
     return null;
   }
 
@@ -262,13 +263,15 @@ Deno.serve(async (_req) => {
         }
 
         // Classifier si style est absent (nouveau produit ou pas encore classifié)
-        const existing = existingMap.get(raw.awin_product_id);
-        const needsAI  = !existing?.style;
+        const existing      = existingMap.get(raw.awin_product_id);
+        const existingStyle = existing?.style ?? null;
+        const needsAI       = existingStyle === null || existingStyle === undefined || existingStyle === "";
 
-        console.log(`[${raw.awin_product_id}] style=${existing?.style ?? "null"} → needsAI=${needsAI}`);
+        console.log(`[${raw.awin_product_id}] existing.style="${existingStyle}" | needsAI=${needsAI} | classifyWithAI sera appelée: ${needsAI}`);
 
         let aiResult: AIClassification | null = null;
         if (needsAI) {
+          console.log(`[${raw.awin_product_id}] → appel classifyWithAI...`);
           try {
             aiResult = await classifyWithAI({
               name:        raw.product_name ?? "",
@@ -277,14 +280,17 @@ Deno.serve(async (_req) => {
               colour:      raw.raw_colour,
               image_url:   imageUrl,
             });
+            console.log(`[${raw.awin_product_id}] → classifyWithAI result: ${JSON.stringify(aiResult)}`);
             if (aiResult) {
               classified++;
             } else {
-              console.warn(`[${raw.awin_product_id}] classifyWithAI returned null — vérifier ANTHROPIC_API_KEY dans les secrets Supabase`);
+              console.error(`[${raw.awin_product_id}] → classifyWithAI a retourné null (voir logs ci-dessus pour la cause)`);
             }
           } catch (aiErr) {
-            console.error(`[${raw.awin_product_id}] AI classification error:`, aiErr);
+            console.error(`[${raw.awin_product_id}] → AI classification EXCEPTION:`, aiErr);
           }
+        } else {
+          console.log(`[${raw.awin_product_id}] → classification IA skippée (style déjà défini: "${existingStyle}")`);
         }
 
         // UPSERT dans products
