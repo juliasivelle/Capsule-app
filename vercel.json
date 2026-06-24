@@ -1,0 +1,19 @@
+Modifié, commité et pushé. ✅
+
+App.jsx:4 — createClient reçoit maintenant { auth: { detectSessionInUrl: true, flowType: "pkce" } }.
+Commit 477dd35 — fix(auth): enable PKCE flow and explicit detectSessionInUrl for OAuth, pushé sur master → Vercel rebuild en cours.
+Action côté dashboards (à faire, sinon le fix ne suffira pas)
+1. Supabase → Authentication → URL Configuration
+
+Site URL = https://capsule-blond-phi.vercel.app exactement, sans slash final.
+Redirect URLs : ajoute aussi https://capsule-blond-phi.vercel.app/** (et http://localhost:5173/** pour le dev).
+2. ⚠️ Vérification importante avec PKCE — Google Cloud Console
+
+Le flow PKCE change le type de callback : Supabase renvoie désormais un ?code=… (query param) au lieu du #access_token=… (hash). Conséquence :
+
+Le callback Supabase côté Google reste le même : https://dyrbhjmcixbpeultzbzq.supabase.co/auth/v1/callback — vérifie qu'il est bien dans Authorized redirect URIs.
+Avec PKCE, detectSessionInUrl doit lire le ?code puis l'échanger contre une session automatiquement au montage. Notre getSession() au montage (commit précédent) reste utile en complément.
+Un point à surveiller
+Le diagnostic « le #access_token disparaît avant lecture » est typique du flow implicite. En passant en PKCE, l'URL de retour devient ?code=… : si une règle de réécriture/redirect Vercel ou le routage SPA strippe les query params à la racine, le problème persistera. Si après ce déploiement la session n'est toujours pas captée, dis-le-moi — on regardera s'il faut un vercel.json avec un rewrite /* → /index.html qui préserve la query string, ou une route /auth/callback dédiée.
+
+Je n'ai pas pu builder localement (ni Node ni npm) — à confirmer sur le déploiement Vercel.
