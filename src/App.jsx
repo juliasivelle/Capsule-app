@@ -10,83 +10,71 @@ const supabase = createClient(
 // DATA
 // ═══════════════════════════════════════════════════════════════
 
-const MARQUES_LIST = [
-  "& Other Stories","A.P.C.","Adidas","Ami Paris","Arket","Ba&sh",
-  "Balzac Paris","Balmain","Celine","Claudie Pierlot","COS",
-  "Des Petits Hauts","Ganni","H&M","Isabel Marant","Jacquemus",
-  "Lemaire","Levi's","Maje","Mango","Marant Étoile","Monoprix",
-  "New Balance","Nike","Patou","Réalisation Par","Rouje","Sandro",
-  "Sessùn","Sézane","The Kooples","Toteme","Uniqlo","Veja","Zadig & Voltaire",
+// Liste de marques du prototype (référence design)
+const BRANDS = [
+  "& Other Stories","A.P.C.","Acne Studios","Adidas","AMI Paris","Arket","ASOS",
+  "Autry","Ba&sh","Balzac Paris","Carhartt WIP","Citizens of Humanity",
+  "Claudie Pierlot","Comptoir des Cotonniers","COS","Filippa K","Frame","Ganni",
+  "Golden Goose","IRO","Isabel Marant","Jacquemus","Khaite","Levi’s",
+  "Loulou Studio","Maison Kitsuné","Maje","Mango","Nanushka","New Balance","Nike",
+  "Oysho","Réalisation Par","Reformation","Rixo","Rotate","Rouje","Salomon",
+  "Sandro","Sessùn","Soeur","Stine Goya","Stussy","Sézane","The Kooples","Totême",
+  "Toteme","Uniqlo","Vanessa Bruno","Veja","Zadig & Voltaire","Zara",
 ].sort();
 
-const STYLES_LIST = [
-  { id:"minimaliste", label:"Minimaliste",  desc:"Lignes épurées, palette neutre",  emoji:"⬜" },
-  { id:"parisien",    label:"Parisien",     desc:"Élégance naturelle & intemporel",  emoji:"🗼" },
-  { id:"casual",      label:"Casual Chic",  desc:"Confortable & dans l'air du temps",emoji:"👟" },
-  { id:"boheme",      label:"Boho",         desc:"Fleurs, matières, liberté",        emoji:"🌿" },
-  { id:"streetwear",  label:"Streetwear",   desc:"Urbain, graphique, affirmé",       emoji:"🔥" },
-  { id:"classique",   label:"Classique",    desc:"Intemporel & soigné",              emoji:"🎀" },
-  { id:"sporty",      label:"Sportswear",   desc:"Athleisure élégant",               emoji:"🏃‍♀️" },
-  { id:"romantique",  label:"Romantique",   desc:"Dentelle, volants, douceur",       emoji:"🌸" },
+const STYLES = [
+  { name:"Minimaliste", icon:"styleMinimal"  },
+  { name:"Casual Chic", icon:"styleCasual"   },
+  { name:"Boho",        icon:"styleBoho"     },
+  { name:"Classique",   icon:"styleClassic"  },
+  { name:"Parisien",    icon:"styleParisian" },
+  { name:"Romantique",  icon:"styleRomantic" },
+  { name:"Sportswear",  icon:"styleSport"    },
+  { name:"Streetwear",  icon:"styleStreet"   },
 ];
 
-const TONS_LIST = [
-  { id:"noir",        label:"Noir",              swatches:["#1A1A1A","#2C2C2C","#3D1A1A","#1A1A2E"] },
-  { id:"blanc",       label:"Blanc & Crème",     swatches:["#FFFFFF","#F5F0EB","#F0EAD6","#E8DFD0"] },
-  { id:"beige",       label:"Beige & Camel",     swatches:["#F5F0EB","#D4C5B0","#C4A882","#A0785A"] },
-  { id:"gris",        label:"Gris & Marine",     swatches:["#C0C0C0","#808080","#16213E","#1A1A2E"] },
-  { id:"pastels",     label:"Pastel",            swatches:["#F9D5E5","#B5E8D5","#D5E8F9","#F9F0D5"] },
-  { id:"vifs",        label:"Coloré",            swatches:["#FF3B3B","#FFB800","#00C16E","#0066FF"] },
+const CUTS_HAUTS = ["Oversize","Cintré / Ajusté","Regular","Crop / Court","Asymétrique","Col montant"];
+const CUTS_BAS   = ["Slim","Wide-leg","Straight","Flare","Taille haute","Taille basse","Mom / Boyfriend"];
+const COUPES     = [...CUTS_HAUTS, ...CUTS_BAS];
+
+const TONES = [
+  { name:"Noir",          hexes:["#1A1714"] },
+  { name:"Blanc & Crème", hexes:["#F5F5F0","#F0E8D8"] },
+  { name:"Beige & Camel", hexes:["#C9B99A","#C19A6B","#795548","#78866B"] },
+  { name:"Gris & Marine", hexes:["#9A9A9A","#1B2A4A"] },
+  { name:"Pastel",        hexes:["#87CEEB","#F4C2C2","#F0C040"] },
+  { name:"Coloré",        hexes:["#5A7A5A","#B03A2E","#6B1F2A","#C2714F"] },
 ];
 
-const COUPES_LIST = [
-  // Hauts
-  { id:"oversize",      label:"Oversize",        emoji:"🌊" },
-  { id:"cintre",        label:"Cintré/Ajusté",   emoji:"🔹" },
-  { id:"regular",       label:"Regular",         emoji:"▬"  },
-  { id:"crop",          label:"Crop/Court",      emoji:"✂️" },
-  { id:"asymetrique",   label:"Asymétrique",     emoji:"🔺" },
-  { id:"col_montant",   label:"Col montant",     emoji:"🔝" },
-  // Bas
-  { id:"slim",          label:"Slim",            emoji:"📌" },
-  { id:"wide_leg",      label:"Wide-leg",        emoji:"🔔" },
-  { id:"straight",      label:"Straight",        emoji:"📐" },
-  { id:"flare",         label:"Flare",           emoji:"🌀" },
-  { id:"taille_haute",  label:"Taille haute",    emoji:"⬆️" },
-  { id:"taille_basse",  label:"Taille basse",    emoji:"⬇️" },
-  { id:"mom_boyfriend", label:"Mom/Boyfriend",   emoji:"☁️" },
+const COULEURS = [
+  "Noir","Blanc","Crème","Beige","Camel","Marron","Kaki","Gris","Marine",
+  "Bleu ciel","Rose poudré","Jaune","Vert","Rouge","Bordeaux","Terracotta","Multicolore",
 ];
-
-const TAILLES_CONFIG = [
-  { id:"haut",     label:"Tops",          options:["XS","S","M","L","XL","XXL"],            icon:"👕" },
-  { id:"bas",      label:"Bottoms",       options:["34","36","38","40","42","44","46"],      icon:"👖" },
-  { id:"shoes",    label:"Shoes",         options:["35","36","37","38","39","40","41","42"], icon:"👟" },
-  { id:"sousvets", label:"Underwear",     options:["XS","S","M","L","XL"],                  icon:"🩲" },
-  { id:"access",   label:"Accessories",   options:["One size","S/M","M/L"],                 icon:"💍" },
-];
-
-const OB_STEPS = [
-  { id:"welcome",   label:"Welcome",   icon:"✦" },
-  { id:"dressing",  label:"Wardrobe",  icon:"👗" },
-  { id:"marques",   label:"Brands",    icon:"🏷️" },
-  { id:"style",     label:"Style",     icon:"✨" },
-  { id:"ouverture", label:"Discovery", icon:"🧭" },
-  { id:"tailles",   label:"Sizes",     icon:"📐" },
-  { id:"tons",      label:"Colours",   icon:"🎨" },
-  { id:"coupes",    label:"Cuts",      icon:"✂️" },
-];
-
-// Wardrobe criteria
 const VET_TYPES = [
-  "T-shirt","Shirt","Blouse","Knitwear","Sweatshirt","Dress","Skirt",
-  "Trousers","Jeans","Shorts","Blazer","Jacket","Coat","Trench coat",
-  "Shoes","Sneakers","Boots","Bag","Accessory","Other",
+  "T-shirt","Chemise","Pull","Sweat","Veste","Manteau","Robe","Jupe","Pantalon",
+  "Jean","Short","Combinaison","Chaussures","Sac","Accessoire",
 ];
-const VET_COLORS = [
-  "White","Ecru","Beige","Camel","Sand","Khaki","Olive","Brown",
-  "Black","Grey","Navy","Blue","Light blue","Pink","Red","Burgundy",
-  "Green","Terracotta","Yellow","Orange","Multicolour","Print",
-];
+
+const SIZE_OPTIONS = {
+  hauts:       ["XXS","XS","S","M","L","XL","XXL"],
+  bas:         ["32","34","36","38","40","42","44","46"],
+  chaussures:  ["35","36","37","38","39","40","41","42","43","44"],
+  sousvets:    ["XXS","XS","S","M","L","XL","XXL"],
+  accessoires: ["Unique","S","M","L"],
+};
+
+const SIZE_LABELS = { hauts:"Hauts", bas:"Bas", chaussures:"Chaussures", sousvets:"Sous-vêtements", accessoires:"Accessoires" };
+
+const STEP_LABELS = ["Identité","Marques & Style","Mes tailles","Tons & Coupes","Mon dressing"];
+
+function emptyProfile() {
+  return {
+    name:"", gender:"Femme", dressing:[], brands:[], style:[], discovery:"open",
+    sizes:{ hauts:"", bas:"", chaussures:"", sousvets:"", accessoires:"" },
+    tones:[], cutsHauts:[], cutsBas:[],
+  };
+}
+function emptyDressingItem() { return { type:"", brand:"", color:"", cut:"" }; }
 
 const ALL_PRODUCTS = [
   { id:1,  name:"Chemise oversize en popeline",       brand:"Sandro",       type:"Shirts",   price:195, color:"Off-white",   size:"S",      image:"https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&q=80", score:98, tag:"Coup de cœur IA" },
@@ -156,16 +144,16 @@ async function fetchAIInsight(product, profile) {
       body: JSON.stringify({
         model:"claude-sonnet-4-20250514", max_tokens:80,
         messages:[{ role:"user", content:
-          `Expert AI personal shopper. 1 punchy sentence max 15 words: why is this piece perfect for this profile?
-Style: ${profile.style||"minimalist"}, tones: ${(profile.tons||[]).join(", ")}, wardrobe: ${dressingStr||"not specified"}.
-Item: ${product.name} in ${product.color} by ${product.brand}.
-Reply with sentence only, no quotes, no punctuation at end.`
+          `Personal shopper IA experte. 1 phrase percutante, max 15 mots : pourquoi cette pièce est parfaite pour ce profil ?
+Style : ${(profile.style||[]).join(", ")||"minimaliste"}, tons : ${(profile.tones||[]).join(", ")}, dressing : ${dressingStr||"non précisé"}.
+Pièce : ${product.name} en ${product.color} par ${product.brand}.
+Réponds uniquement par la phrase, sans guillemets ni ponctuation finale.`
         }],
       }),
     });
     const data = await res.json();
-    return data.content?.[0]?.text || "A piece made for your style.";
-  } catch { return "A piece made for your style."; }
+    return data.content?.[0]?.text || "Une pièce taillée pour votre style.";
+  } catch { return "Une pièce taillée pour votre style."; }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -181,18 +169,27 @@ async function loadProfileFromSupabase(userId) {
 
   if (!prefData) return null; // Nouvel utilisateur, onboarding non fait
 
+  const base = emptyProfile();
+  // `styles` (text[]) est la colonne enrichie ; fallback sur `style` (text) pour les anciens profils
+  const styleArr = Array.isArray(prefData.styles) && prefData.styles.length
+    ? prefData.styles
+    : (prefData.style ? [prefData.style] : []);
+
   return {
-    prenom:    profileData?.full_name || "",
-    style:     prefData.style || null,
-    ouverture: prefData.discovery ? "open" : "strict",
-    tailles:   prefData.sizes || {},
-    tons:      prefData.tones || [],
-    coupes:    prefData.cuts_hauts || [],
-    marques:   prefData.brands || [],
+    name:      profileData?.full_name || "",
+    gender:    prefData.gender || "Femme",
+    style:     styleArr,
+    discovery: prefData.discovery ? "open" : "own",
+    sizes:     { ...base.sizes, ...(prefData.sizes || {}) },
+    tones:     prefData.tones || [],
+    cutsHauts: prefData.cuts_hauts || [],
+    cutsBas:   prefData.cuts_bas || [],
+    brands:    prefData.brands || [],
     dressing:  (wardrobeData || []).map(w => ({
-      type:  w.category || w.name,
+      type:  w.category || w.name || "",
       color: w.color || "",
-      brand: w.notes || null,
+      brand: w.notes || "",
+      cut:   "",
     })),
   };
 }
@@ -200,30 +197,34 @@ async function loadProfileFromSupabase(userId) {
 async function saveProfileToSupabase(userId, profile) {
   await supabase
     .from("profiles")
-    .update({ full_name: profile.prenom })
+    .update({ full_name: profile.name })
     .eq("id", userId);
 
   await supabase.from("profile_preferences").upsert({
     user_id:    userId,
-    sizes:      profile.tailles,
-    tones:      profile.tons,
-    cuts_hauts: profile.coupes,
-    cuts_bas:   profile.coupes,
-    style:      profile.style,
-    brands:     profile.marques,
-    discovery:  profile.ouverture === "open",
+    sizes:      profile.sizes,
+    tones:      profile.tones,
+    cuts_hauts: profile.cutsHauts,
+    cuts_bas:   profile.cutsBas,
+    styles:     profile.style,            // text[] — sélection multiple
+    style:      profile.style?.[0] || null, // compat colonne mono-valeur
+    gender:     profile.gender || null,
+    brands:     profile.brands,
+    discovery:  profile.discovery === "open",
   }, { onConflict: "user_id" });
 
+  await supabase.from("wardrobe_items").delete().eq("user_id", userId);
   if (profile.dressing.length > 0) {
-    await supabase.from("wardrobe_items").delete().eq("user_id", userId);
     await supabase.from("wardrobe_items").insert(
-      profile.dressing.map(d => ({
-        user_id:  userId,
-        name:     `${d.color} ${d.type}`,
-        category: d.type,
-        color:    d.color,
-        notes:    d.brand || null,
-      }))
+      profile.dressing
+        .filter(d => d.type || d.color || d.brand)
+        .map(d => ({
+          user_id:  userId,
+          name:     `${d.color} ${d.type}`.trim() || d.type || "Pièce",
+          category: d.type || null,
+          color:    d.color || null,
+          notes:    d.brand || null,
+        }))
     );
   }
 }
@@ -238,7 +239,11 @@ export default function CapsuleApp() {
   const [userId, setUserId]           = useState(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    let active = true; // évite un setState après démontage
+
+    // Applique une session (ou son absence) à l'état de l'app.
+    const applySession = async (session) => {
+      if (!active) return;
       if (!session) {
         setUserId(null);
         setUserProfile(null);
@@ -247,14 +252,26 @@ export default function CapsuleApp() {
       }
       setUserId(session.user.id);
       const profile = await loadProfileFromSupabase(session.user.id);
+      if (!active) return;
       if (profile) {
         setUserProfile(profile);
         setScreen("listing");
       } else {
         setScreen("onboarding");
       }
-    });
-    return () => subscription.unsubscribe();
+    };
+
+    // 1. Récupère la session existante au montage — indispensable pour
+    //    capter le retour OAuth (Google) : onAuthStateChange peut ne pas
+    //    se redéclencher si la session est déjà restaurée depuis l'URL/storage.
+    supabase.auth.getSession().then(({ data: { session } }) => applySession(session));
+
+    // 2. Écoute les changements ultérieurs (login, logout, refresh token).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => applySession(session)
+    );
+
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   const handleOnboardingComplete = async (profile) => {
@@ -466,373 +483,431 @@ function AuthScreen() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ONBOARDING
+// ONBOARDING — copie conforme du prototype (mobile phone-frame)
 // ═══════════════════════════════════════════════════════════════
 
-function OnboardingFlow({ onComplete, initialProfile }) {
-  const [step, setStep]   = useState(0);
-  const [animKey, setAnimKey] = useState(0);
-  const [animDir, setAnimDir] = useState("forward");
-  const [profile, setProfile] = useState(initialProfile || {
-    prenom:"", dressing:[], marques:[], style:null,
-    ouverture:null, tailles:{}, tons:[], coupes:[],
-  });
+// Normalisation insensible aux accents/casse pour la recherche de marques
+function normalizeText(str) {
+  return (str || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().trim();
+}
 
-  const navigate = (d) => {
-    setAnimDir(d > 0 ? "forward" : "back");
-    setAnimKey(k => k + 1);
-    setStep(s => s + d);
+// Aperçu de compatibilité pour le teaser — léger, déterministe, à partir
+// du catalogue de démo (les vrais scores sont calculés côté listing).
+function teaserScore(product, profile) {
+  let s = product.score || 75;
+  if ((profile.brands || []).includes(product.brand)) s = Math.min(99, s + 4);
+  return s;
+}
+
+function Icon({ name, size = 18, color = "currentColor" }) {
+  const paths = {
+    search: <><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></>,
+    heart: <path d="M12 21s-7.5-5.2-10-9.8C.3 7.8 2 4 5.6 4c2 0 3.5 1.2 4.4 2.6C10.9 5.2 12.4 4 14.4 4 18 4 19.7 7.8 18 11.2 17 13 12 18 12 21z" fill={color} stroke="none"/>,
+    back: <polyline points="15 18 9 12 15 6"/>,
+    close: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    check: <polyline points="20 6 9 17 4 12"/>,
+    camera: <><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></>,
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+    eyeOff: <><path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a18.5 18.5 0 015.06-5.94M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 7 11 7a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></>,
+    styleMinimal: <><path d="M8 4l-2 3v13h12V7l-2-3"/><path d="M8 4a4 4 0 008 0"/></>,
+    styleCasual: <><path d="M5 7l3-3h2a2 2 0 004 0h2l3 3-2.5 3L16 9v9H8V9l-1.5 1z"/></>,
+    styleBoho: <><path d="M7 3v6l-2 12h14L17 9V3"/><path d="M7 9h10"/><path d="M9 3v3M12 3v3M15 3v3"/></>,
+    styleClassic: <><path d="M5 7l3-4h2a2 2 0 004 0h2l3 4-2 2v12H7V9z"/><line x1="10" y1="13" x2="14" y2="13"/></>,
+    styleParisian: <><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v3c0 2 3 3 7 3s7-1 7-3V7"/><line x1="12" y1="13" x2="12" y2="21"/></>,
+    styleRomantic: <><path d="M12 5c-3 0-5 2-5 5 0 5 5 9 5 9s5-4 5-9c0-3-2-5-5-5z"/><path d="M9 9c1-1 2-1.5 3-1.5s2 .5 3 1.5"/></>,
+    styleSport: <><path d="M6 5l3-2 3 2 3-2 3 2-2 4v11H8V9z"/><path d="M8 9l-2-1M16 9l2-1"/></>,
+    styleStreet: <><path d="M4 9l4-5h2a2 2 0 004 0h2l4 5-3 2v9H7v-9z"/><circle cx="12" cy="16" r="1.5"/></>,
   };
-
-  const canContinue = () => {
-    const id = OB_STEPS[step].id;
-    if (id === "welcome")   return profile.prenom.trim().length > 0;
-    if (id === "marques")   return profile.marques.length > 0;
-    if (id === "style")     return !!profile.style;
-    if (id === "ouverture") return !!profile.ouverture;
-    if (id === "tailles")   return Object.keys(profile.tailles).length > 0;
-    if (id === "tons")      return profile.tons.length > 0;
-    if (id === "coupes")    return profile.coupes.length > 0;
-    return true;
-  };
-
-  const toggle = (key, val) =>
-    setProfile(p => ({ ...p, [key]: p[key].includes(val) ? p[key].filter(v=>v!==val) : [...p[key], val] }));
-
-  const current = OB_STEPS[step];
-  const progress = (step / (OB_STEPS.length - 1)) * 100;
-
   return (
-    <div className="ob-root">
-      <aside className="ob-side">
-        <div className="ob-brand">
-          <div className="ob-logo">Capsule</div>
-          <div className="ob-tagline">Your AI personal shopper</div>
-        </div>
-        <nav className="ob-steps">
-          {OB_STEPS.map((s, i) => (
-            <div key={s.id} className={`ob-step-item${i===step?" active":""}${i<step?" done":""}`}>
-              <div className="ob-step-dot">{i < step ? "✓" : s.icon}</div>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </nav>
-        <div className="ob-side-deco"><div className="ob-deco-r1"/><div className="ob-deco-r2"/></div>
-      </aside>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {paths[name]}
+    </svg>
+  );
+}
 
-      <div className="ob-main">
-        <div className="ob-progress"><div className="ob-progress-fill" style={{ width:`${progress}%` }}/></div>
-
-        <div key={animKey} className={`ob-content anim-${animDir}`}>
-
-          {current.id === "welcome" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Welcome ✦</div>
-              <h1 className="ob-title">Let's build your<br/>style profile</h1>
-              <p className="ob-desc">In a few steps, Capsule analyses your taste and wardrobe to recommend pieces truly made for you.</p>
-              <label className="ob-label">Your first name</label>
-              <input className="ob-input" placeholder="e.g. Sophie" value={profile.prenom}
-                onChange={e => setProfile(p => ({...p, prenom:e.target.value}))}
-                onKeyDown={e => e.key==="Enter" && canContinue() && navigate(1)} autoFocus />
-            </div>
-          )}
-
-          {current.id === "dressing" && (
-            <WardrobeStep profile={profile} setProfile={setProfile} />
-          )}
-
-          {current.id === "marques" && (
-            <BrandsStep profile={profile} toggle={toggle} />
-          )}
-
-          {current.id === "style" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Step 3 of 7</div>
-              <h1 className="ob-title">Your style</h1>
-              <p className="ob-desc">Choose the aesthetic that best describes you.</p>
-              <div className="style-grid">
-                {STYLES_LIST.map(st => (
-                  <button key={st.id} onClick={() => setProfile(p => ({...p, style:st.label}))}
-                    className={`style-card${profile.style===st.label?" sel":""}`}>
-                    <span className="style-emoji">{st.emoji}</span>
-                    <span className="style-label">{st.label}</span>
-                    <span className="style-desc">{st.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {current.id === "ouverture" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Step 4 of 7</div>
-              <h1 className="ob-title">How open are you?</h1>
-              <p className="ob-desc">Should Capsule stay within your universe, or surprise you with new discoveries?</p>
-              <div className="ouv-grid">
-                {[
-                  { val:"strict", emoji:"🎯", title:"Keep it familiar", desc:"Only pieces matching my current brands & style" },
-                  { val:"open",   emoji:"🧭", title:"Open to discovery", desc:"Surprise me with new brands that might suit me" },
-                ].map(o => (
-                  <button key={o.val} onClick={() => setProfile(p => ({...p, ouverture:o.val}))}
-                    className={`ouv-card${profile.ouverture===o.val?" sel":""}`}>
-                    <span style={{ fontSize:34 }}>{o.emoji}</span>
-                    <strong>{o.title}</strong>
-                    <p>{o.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {current.id === "tailles" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Step 5 of 7</div>
-              <h1 className="ob-title">Your sizes</h1>
-              <p className="ob-desc">Capsule will only show pieces available in your size.</p>
-              <div className="tailles-list">
-                {TAILLES_CONFIG.map(cat => (
-                  <div key={cat.id} className="taille-row">
-                    <div className="taille-label">{cat.icon} {cat.label}</div>
-                    <div className="taille-chips">
-                      {cat.options.map(opt => (
-                        <button key={opt} onClick={() => setProfile(p => ({...p, tailles:{...p.tailles,[cat.id]:opt}}))}
-                          className={`t-chip${profile.tailles[cat.id]===opt?" sel":""}`}>{opt}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {current.id === "tons" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Step 6 of 7</div>
-              <h1 className="ob-title">Your colour palette</h1>
-              <p className="ob-desc">Which colour ranges do you reach for most? Multiple choices welcome.</p>
-              <div className="tons-grid">
-                {TONS_LIST.map(t => (
-                  <button key={t.id} onClick={() => toggle("tons", t.label)}
-                    className={`ton-card${profile.tons.includes(t.label)?" sel":""}`}>
-                    <div className="ton-swatches">{t.swatches.map((c,i) => <div key={i} style={{background:c,flex:1,height:"100%"}}/>)}</div>
-                    <span className="ton-label">{t.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {current.id === "coupes" && (
-            <div className="ob-section">
-              <div className="ob-eyebrow">Step 7 of 7</div>
-              <h1 className="ob-title">Your preferred cuts</h1>
-              <p className="ob-desc">Select the silhouettes you love. Multiple choices welcome.</p>
-              <div className="chips-grid two">
-                {COUPES_LIST.map(c => (
-                  <button key={c.id} onClick={() => toggle("coupes", c.label)}
-                    className={`chip${profile.coupes.includes(c.label)?" sel":""}`}>
-                    {c.emoji} {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        <div className="ob-nav">
-          {step > 0 && <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>}
-          <button className={`next-btn${!canContinue()?" dis":""}`} disabled={!canContinue()}
-            onClick={() => step < OB_STEPS.length-1 ? navigate(1) : onComplete(profile)}>
-            {step === OB_STEPS.length-1 ? "See my recommendations →" : "Continue →"}
-          </button>
-        </div>
-      </div>
+function ProgressBar({ value }) {
+  return (
+    <div style={{ height:"3px", background:"var(--bone)", position:"sticky", top:0, zIndex:20 }}>
+      <div style={{ height:"100%", background:"var(--accent)", width:value+"%", transition:"width .4s ease" }}/>
     </div>
   );
 }
 
-// ─── Wardrobe Step — criteria-based entry ─────────────────────
-function WardrobeStep({ profile, setProfile }) {
-  const [vetType, setVetType]   = useState("");
-  const [vetColor, setVetColor] = useState("");
-  const [vetBrand, setVetBrand] = useState("");
-  const [brandSugg, setBrandSugg] = useState([]);
-  const [showSugg, setShowSugg]   = useState(false);
-  const brandRef = useRef();
+function OnboardingFlow({ onComplete, initialProfile }) {
+  const isEditMode = !!initialProfile;
+  const [draft, setDraft] = useState(() => ({ ...emptyProfile(), ...(initialProfile || {}) }));
+  const [step, setStep] = useState(1);          // 1..5
+  const [substep2, setSubstep2] = useState(1);  // étape 2 scindée (marques → style)
+  const [showTeaser, setShowTeaser] = useState(false);
+  const [anim, setAnim] = useState(0);
+  const direction = useRef("fwd");
 
-  const handleBrandInput = (val) => {
-    setVetBrand(val);
-    if (val.trim().length > 0) {
-      setBrandSugg(MARQUES_LIST.filter(m => m.toLowerCase().includes(val.toLowerCase())).slice(0,6));
-      setShowSugg(true);
-    } else {
-      setShowSugg(false);
+  const update = (key, val) => setDraft(d => ({ ...d, [key]: val }));
+  const toggleArr = (key, val) => setDraft(d => {
+    const arr = d[key];
+    return { ...d, [key]: arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val] };
+  });
+
+  const isValid = () => {
+    switch (step) {
+      case 1: return draft.name.trim().length > 0;
+      case 2: return substep2 === 1 ? draft.brands.length > 0 : draft.style.length > 0;
+      case 3: return Object.values(draft.sizes).some(v => v);
+      case 4: return draft.tones.length > 0 && (draft.cutsHauts.length > 0 || draft.cutsBas.length > 0);
+      case 5: return true;
+      default: return true;
     }
   };
 
-  const addPiece = () => {
-    if (!vetType || !vetColor) return;
-    const piece = { type: vetType, color: vetColor, brand: vetBrand.trim() || null };
-    setProfile(p => ({ ...p, dressing: [...p.dressing, piece] }));
-    setVetType(""); setVetColor(""); setVetBrand(""); setShowSugg(false);
-  };
+  const bump = (dir) => { direction.current = dir; setAnim(a => a + 1); };
 
-  const removePiece = (i) => setProfile(p => ({ ...p, dressing: p.dressing.filter((_,j) => j !== i) }));
+  const goNext = () => {
+    if (step === 2 && substep2 === 1) { bump("fwd"); setSubstep2(2); return; }
+    if (step === 2 && substep2 === 2 && !isEditMode) { setShowTeaser(true); return; }
+    if (step < 5) { bump("fwd"); setStep(step + 1); }
+    else onComplete(draft);
+  };
+  const goBack = () => {
+    if (step === 2 && substep2 === 2) { bump("back"); setSubstep2(1); return; }
+    if (step > 1) { bump("back"); setStep(step - 1); }
+  };
+  const jumpTo = (n) => { direction.current = n > step ? "fwd" : "back"; if (n === 2) setSubstep2(1); setStep(n); setAnim(a => a + 1); };
+  const continueFromTeaser = () => { setShowTeaser(false); bump("fwd"); setStep(3); };
+
+  const teaserProducts = showTeaser
+    ? [...ALL_PRODUCTS].map(p => ({ ...p, matchScore: teaserScore(p, draft) }))
+        .sort((a, b) => b.matchScore - a.matchScore).slice(0, 3)
+    : [];
 
   return (
-    <div className="ob-section">
-      <div className="ob-eyebrow">Step 1 of 7</div>
-      <h1 className="ob-title">Your current wardrobe</h1>
-      <p className="ob-desc">Add the pieces you already own — Capsule will avoid duplicates and spot what's missing.</p>
+    <div className="phone-frame fade-in" style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+      <ProgressBar value={(step / 5) * 100} />
 
-      <div className="wardrobe-builder">
-        {/* Type */}
-        <div className="wb-field">
-          <label className="ob-label">Type of piece</label>
-          <div className="chips-grid">
-            {VET_TYPES.map(t => (
-              <button key={t} onClick={() => setVetType(t)}
-                className={`chip sm${vetType===t?" sel":""}`}>{t}</button>
-            ))}
-          </div>
+      {isEditMode && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem .25rem" }}>
+          <h2 style={{ fontSize:"1.15rem" }}>Modifier mon profil</h2>
+          <button onClick={() => onComplete(draft)} aria-label="Fermer" style={{ background:"var(--bone)", border:"none", width:"30px", height:"30px", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Icon name="close" size={14} color="var(--charcoal)"/>
+          </button>
         </div>
+      )}
 
-        {/* Colour */}
-        {vetType && (
-          <div className="wb-field">
-            <label className="ob-label">Colour</label>
-            <div className="chips-grid">
-              {VET_COLORS.map(c => (
-                <button key={c} onClick={() => setVetColor(c)}
-                  className={`chip sm${vetColor===c?" sel":""}`}>{c}</button>
+      {isEditMode && (
+        <div style={{ display:"flex", gap:".4rem", padding:".75rem 1.25rem", overflowX:"auto" }}>
+          {STEP_LABELS.map((label, i) => {
+            const n = i + 1, active = n === step;
+            return (
+              <button key={n} onClick={() => jumpTo(n)} style={{
+                flexShrink:0, padding:".3rem .65rem", borderRadius:"9999px", fontSize:".68rem",
+                border:"1px solid "+(active ? "var(--accent)" : "var(--bone)"),
+                background: active ? "var(--accent)" : "var(--white)",
+                color: active ? "var(--white)" : "var(--stone)", whiteSpace:"nowrap",
+              }}>{n}. {label}</button>
+            );
+          })}
+        </div>
+      )}
+
+      {!isEditMode && (
+        <div style={{ padding:".75rem 1.25rem .25rem", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:".68rem", letterSpacing:".1em", textTransform:"uppercase", color:"var(--stone)" }}>
+            Étape {step} / 5{step === 5 ? " — Optionnel" : ""}
+          </span>
+        </div>
+      )}
+
+      <div key={anim} className={direction.current === "fwd" ? "step-enter-fwd" : "step-enter-back"}
+        style={{ flex:1, padding:".5rem 1.25rem 1.5rem", overflowY:"auto" }}>
+
+        {step === 1 && (
+          <div>
+            <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Parlez-nous de vous</h2>
+            <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.5rem" }}>
+              Ces informations personnalisent votre expérience Capsule.
+            </p>
+            <div className="ob-fieldlabel">Votre prénom</div>
+            <input type="text" value={draft.name} placeholder="Julia" autoFocus
+              onChange={e => update("name", e.target.value)}
+              onKeyDown={e => e.key === "Enter" && isValid() && goNext()}
+              className="ob-text-input" style={{ marginBottom:"1.5rem" }} />
+            <div className="ob-fieldlabel">Je cherche des vêtements pour</div>
+            <div style={{ display:"flex", border:"1px solid var(--bone)", borderRadius:"2px", overflow:"hidden", width:"fit-content" }}>
+              {["Femme","Homme","Enfant"].map((g, i) => (
+                <button key={g} onClick={() => update("gender", g)} style={{
+                  padding:".5rem 1.1rem", fontSize:".82rem", border:"none",
+                  borderLeft: i > 0 ? "1px solid var(--bone)" : "none",
+                  background: (draft.gender || "Femme") === g ? "var(--accent)" : "var(--white)",
+                  color: (draft.gender || "Femme") === g ? "#fff" : "var(--charcoal)",
+                }}>{g}</button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Brand — optional with dropdown */}
-        {vetType && vetColor && (
-          <div className="wb-field">
-            <label className="ob-label">Brand <span className="ob-optional">(optional)</span></label>
-            <div className="brand-input-wrap" ref={brandRef}>
-              <input className="ob-input" placeholder="e.g. Sézane, Zara…"
-                value={vetBrand} onChange={e => handleBrandInput(e.target.value)}
-                onFocus={() => vetBrand && setShowSugg(true)}
-                onBlur={() => setTimeout(() => setShowSugg(false), 150)}
-              />
-              {showSugg && brandSugg.length > 0 && (
-                <div className="brand-dropdown">
-                  {brandSugg.map(m => (
-                    <button key={m} className="brand-sugg-item" onMouseDown={() => { setVetBrand(m); setShowSugg(false); }}>{m}</button>
-                  ))}
-                </div>
-              )}
+        {step === 2 && substep2 === 1 && (
+          <div>
+            <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Vos marques</h2>
+            <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.25rem" }}>
+              Définissez vos incontournables — vous pourrez en ajouter d'autres plus tard.
+            </p>
+            <BrandStep draft={draft} toggleArr={toggleArr} />
+          </div>
+        )}
+
+        {step === 2 && substep2 === 2 && (
+          <div>
+            <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Votre style</h2>
+            <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.25rem" }}>
+              Définissez votre univers stylistique.
+            </p>
+            <div className="ob-fieldlabel">Style vestimentaire <span style={{ textTransform:"none", color:"var(--warm-gray)" }}>(plusieurs choix)</span></div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem", marginBottom:"1.5rem" }}>
+              {STYLES.map(s => (
+                <button key={s.name} onClick={() => toggleArr("style", s.name)}
+                  className={"chip" + (draft.style.includes(s.name) ? " selected" : "")}
+                  style={{ display:"inline-flex", alignItems:"center", gap:".4rem" }}>
+                  <Icon name={s.icon} size={13} color={draft.style.includes(s.name) ? "#fff" : "var(--accent)"}/>
+                  {s.name}
+                </button>
+              ))}
+            </div>
+            <div className="ob-fieldlabel">Ouverture aux découvertes</div>
+            <div style={{ display:"flex", border:"1px solid var(--bone)", borderRadius:"2px", overflow:"hidden" }}>
+              <button onClick={() => update("discovery", "own")} style={{
+                flex:1, padding:".6rem .5rem", fontSize:".76rem", border:"none",
+                background: draft.discovery === "own" ? "var(--accent)" : "var(--white)",
+                color: draft.discovery === "own" ? "#fff" : "var(--charcoal)",
+              }}>Mes marques uniquement</button>
+              <button onClick={() => update("discovery", "open")} style={{
+                flex:1, padding:".6rem .5rem", fontSize:".76rem", border:"none", borderLeft:"1px solid var(--bone)",
+                background: draft.discovery === "open" ? "var(--accent)" : "var(--white)",
+                color: draft.discovery === "open" ? "#fff" : "var(--charcoal)",
+              }}>Ouvert(e) à découvrir</button>
             </div>
           </div>
         )}
 
-        {/* Add button */}
-        {vetType && vetColor && (
-          <button className="wb-add-btn" onClick={addPiece}>
-            + Add to wardrobe — <em>{vetColor} {vetType}{vetBrand ? ` · ${vetBrand}` : ""}</em>
-          </button>
+        {step === 3 && (
+          <div>
+            <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Vos tailles</h2>
+            <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.25rem" }}>
+              Pour des recommandations à votre taille exacte.
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:".75rem" }}>
+              {Object.entries(SIZE_LABELS).map(([key, label]) => (
+                <div key={key} style={{ border:"1px solid var(--bone)", borderRadius:"2px", padding:".75rem", background:"var(--white)" }}>
+                  <div className="ob-fieldlabel" style={{ marginBottom:".4rem" }}>{label}</div>
+                  <select value={draft.sizes[key]} onChange={e => update("sizes", { ...draft.sizes, [key]: e.target.value })}
+                    style={{ width:"100%", border:"1px solid var(--bone)", borderRadius:"2px", padding:".4rem", background:"var(--cream)", fontSize:".82rem" }}>
+                    <option value="">—</option>
+                    {SIZE_OPTIONS[key].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
+
+        {step === 4 && (
+          <div>
+            <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Tons & Coupes</h2>
+            <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.25rem" }}>
+              Les dernières préférences pour calibrer vos recommandations.
+            </p>
+            <div className="ob-fieldlabel">Tons préférés <span style={{ textTransform:"none", color:"var(--warm-gray)" }}>(plusieurs choix)</span></div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:".7rem", margin:".6rem 0 1.5rem" }}>
+              {TONES.map(t => {
+                const sel = draft.tones.includes(t.name);
+                const gradient = t.hexes.length > 1 ? `linear-gradient(90deg, ${t.hexes.join(", ")})` : t.hexes[0];
+                return (
+                  <div key={t.name} onClick={() => toggleArr("tones", t.name)} title={t.name} style={{
+                    borderRadius:"2px", overflow:"hidden", cursor:"pointer",
+                    border: sel ? "1.5px solid var(--accent)" : "1px solid var(--bone)", background:"var(--white)",
+                  }}>
+                    <div style={{ position:"relative", height:"40px", background:gradient }}>
+                      {sel && (
+                        <div style={{ position:"absolute", top:"4px", right:"4px", width:"18px", height:"18px", borderRadius:"50%", background:"var(--accent)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <Icon name="check" size={11} color="#fff"/>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ padding:".45rem .5rem", fontSize:".68rem", textAlign:"center", color: sel ? "var(--accent)" : "var(--charcoal)", fontWeight: sel ? 500 : 400 }}>
+                      {t.name}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="ob-fieldlabel">Coupes préférées — Hauts <span style={{ textTransform:"none", color:"var(--warm-gray)" }}>(plusieurs choix)</span></div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem", margin:".5rem 0 1.1rem" }}>
+              {CUTS_HAUTS.map(c => (
+                <button key={c} onClick={() => toggleArr("cutsHauts", c)} className={"chip" + (draft.cutsHauts.includes(c) ? " selected" : "")}>{c}</button>
+              ))}
+            </div>
+            <div className="ob-fieldlabel">Coupes préférées — Bas <span style={{ textTransform:"none", color:"var(--warm-gray)" }}>(plusieurs choix)</span></div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem", marginTop:".5rem" }}>
+              {CUTS_BAS.map(c => (
+                <button key={c} onClick={() => toggleArr("cutsBas", c)} className={"chip" + (draft.cutsBas.includes(c) ? " selected" : "")}>{c}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 5 && <DressingStep draft={draft} setDraft={setDraft} />}
       </div>
 
-      {/* Pieces added */}
-      {profile.dressing.length > 0 && (
-        <div className="wardrobe-list">
-          <div className="ob-label" style={{ marginBottom:10 }}>Added pieces ({profile.dressing.length})</div>
-          <div className="wardrobe-tags">
-            {profile.dressing.map((d, i) => (
-              <div key={i} className="wardrobe-tag">
-                <span className="wt-color-dot" />
-                <span>{d.color} {d.type}{d.brand ? ` · ${d.brand}` : ""}</span>
-                <button className="wt-remove" onClick={() => removePiece(i)}>×</button>
+      <div style={{ padding:".85rem 1.25rem 1rem", borderTop:"1px solid var(--bone)", display:"flex", flexDirection:"column", gap:".6rem", background:"var(--cream)" }}>
+        {(step > 1 || step === 5) && (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            {step > 1 ? (
+              <button onClick={goBack} style={{ background:"none", border:"1px solid var(--bone)", borderRadius:"2px", padding:".6rem .9rem", fontSize:".76rem", color:"var(--stone)" }}>← Retour</button>
+            ) : <span/>}
+            {step === 5 && (
+              <button onClick={() => onComplete(draft)} style={{ background:"none", border:"none", color:"var(--stone)", fontSize:".76rem", textDecoration:"underline", padding:".5rem" }}>Passer cette étape →</button>
+            )}
+          </div>
+        )}
+        <button onClick={goNext} disabled={!isValid()} className="btn-primary" style={{ whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {step === 5 ? "✦ Voir ma sélection" : isEditMode && step === 4 ? "Enregistrer" : "Continuer →"}
+        </button>
+      </div>
+
+      {/* TEASER — aperçu de valeur après l'étape 2 */}
+      <div style={{
+        position:"fixed", inset:0, zIndex:80, background:"var(--cream)",
+        transform: showTeaser ? "translateY(0)" : "translateY(100%)",
+        transition:"transform .35s cubic-bezier(.4,0,.2,1)", display:"flex", flexDirection:"column",
+        maxWidth:"430px", margin:"0 auto",
+      }}>
+        <div style={{ flex:1, overflowY:"auto", padding:"2.5rem 1.5rem 1.5rem", textAlign:"center" }}>
+          <div style={{ width:"46px", height:"46px", borderRadius:"50%", background:"var(--accent-pale)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 1rem" }}>
+            <span style={{ fontSize:"1.2rem" }}>✦</span>
+          </div>
+          <h2 style={{ fontSize:"1.35rem", marginBottom:".5rem" }}>Déjà de belles pistes</h2>
+          <p style={{ color:"var(--stone)", fontSize:".84rem", marginBottom:"1.75rem", maxWidth:"320px", marginLeft:"auto", marginRight:"auto" }}>
+            Avec vos marques et votre style, voici un avant-goût de ce que Capsule vous proposera. Encore quelques précisions pour affiner votre sélection.
+          </p>
+          <div style={{ display:"flex", gap:".75rem", justifyContent:"center", flexWrap:"wrap" }}>
+            {teaserProducts.map(p => (
+              <div key={p.id} style={{ width:"104px", textAlign:"left" }}>
+                <div style={{ width:"104px", height:"130px", borderRadius:"2px", overflow:"hidden", background:"#EAE4DA" }}>
+                  <img src={p.image} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                    onError={e => { e.target.src = `https://placehold.co/104x130/EAE4DA/7C7268?text=${encodeURIComponent(p.brand)}`; }} />
+                </div>
+                <div style={{ fontSize:".6rem", textTransform:"uppercase", color:"var(--stone)", marginTop:".4rem" }}>{p.brand}</div>
+                <div style={{ fontSize:".72rem", color:"var(--charcoal)", lineHeight:1.3 }}>{p.name}</div>
+                <div style={{ fontSize:".68rem", color:"var(--accent)", marginTop:".15rem" }}>{p.matchScore}% compatible</div>
               </div>
             ))}
           </div>
         </div>
-      )}
-
-      {profile.dressing.length === 0 && (
-        <p className="ob-hint">💡 You can skip this step and add your wardrobe later.</p>
-      )}
+        <div style={{ padding:"1rem 1.25rem", borderTop:"1px solid var(--bone)", background:"var(--cream)" }}>
+          <button onClick={continueFromTeaser} className="btn-primary">Continuer mon profil →</button>
+        </div>
+      </div>
     </div>
   );
 }
 
-// ─── Brands Step — search with dropdown suggestions ───────────
-function BrandsStep({ profile, toggle }) {
-  const [search, setSearch] = useState("");
-  const [showDrop, setShowDrop] = useState(false);
-  const inputRef = useRef();
-
-  const filtered = MARQUES_LIST.filter(m => m.toLowerCase().includes(search.toLowerCase()));
-  const suggestions = search.trim().length > 0
-    ? MARQUES_LIST.filter(m => m.toLowerCase().includes(search.toLowerCase())).slice(0, 8)
-    : [];
-
-  const select = (m) => {
-    toggle("marques", m);
-    setSearch("");
-    setShowDrop(false);
-    inputRef.current?.focus();
-  };
-
+// ─── Étape Marques — recherche + sélection ────────────────────
+function BrandStep({ draft, toggleArr }) {
+  const [query, setQuery] = useState("");
+  const filtered = BRANDS.filter(b => normalizeText(b).includes(normalizeText(query)));
   return (
-    <div className="ob-section">
-      <div className="ob-eyebrow">Step 2 of 7</div>
-      <h1 className="ob-title">Your favourite brands</h1>
-      <p className="ob-desc">Search or browse below. Select as many as you like.</p>
-
-      {/* Search with dropdown */}
-      <div className="brand-input-wrap" style={{ marginBottom:20 }}>
-        <input ref={inputRef} className="ob-input" placeholder="Search a brand…"
-          value={search} onChange={e => { setSearch(e.target.value); setShowDrop(true); }}
-          onFocus={() => search && setShowDrop(true)}
-          onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-          style={{ marginBottom:0 }}
-        />
-        {showDrop && suggestions.length > 0 && (
-          <div className="brand-dropdown">
-            {suggestions.map(m => (
-              <button key={m} className={`brand-sugg-item${profile.marques.includes(m)?" picked":""}`}
-                onMouseDown={() => select(m)}>
-                {m}
-                {profile.marques.includes(m) && <span className="brand-sugg-check">✓</span>}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Selected tags */}
-      {profile.marques.length > 0 && (
-        <div style={{ marginBottom:16 }}>
-          <div className="ob-label" style={{ marginBottom:8 }}>Selected ({profile.marques.length})</div>
-          <div className="chips-grid">
-            {profile.marques.map(m => (
-              <button key={m} className="chip sel" onClick={() => toggle("marques", m)}>
-                {m} ×
-              </button>
-            ))}
-          </div>
+    <div>
+      <div className="ob-fieldlabel">Marques préférées</div>
+      <p style={{ color:"var(--stone)", fontSize:".85rem", margin:".5rem 0 1rem" }}>
+        Recherchez et sélectionnez vos marques favorites.
+      </p>
+      <input type="text" value={query} placeholder="Rechercher une marque…"
+        onChange={e => setQuery(e.target.value)} className="ob-text-input"
+        style={{ marginBottom:".85rem" }} />
+      {draft.brands.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:".4rem", marginBottom:".85rem" }}>
+          {draft.brands.map(b => (
+            <span key={b} onClick={() => toggleArr("brands", b)} style={{
+              background:"var(--bone)", borderRadius:"9999px", padding:".3rem .7rem .3rem .9rem",
+              fontSize:".76rem", display:"flex", alignItems:"center", gap:".4rem", cursor:"pointer",
+            }}>{b} <span style={{ color:"var(--stone)" }}>✕</span></span>
+          ))}
         </div>
       )}
-
-      {/* Full brand grid */}
-      <div className="ob-label" style={{ marginBottom:10 }}>All brands</div>
-      <div className="chips-grid">
-        {filtered.map(m => (
-          <button key={m} onClick={() => toggle("marques", m)}
-            className={`chip${profile.marques.includes(m)?" sel":""}`}>{m}</button>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem" }}>
+        {filtered.map(b => (
+          <button key={b} onClick={() => toggleArr("brands", b)}
+            className={"chip" + (draft.brands.includes(b) ? " selected" : "")}>{b}</button>
         ))}
       </div>
     </div>
   );
 }
+
+// ─── Étape Dressing — scan photo (placeholder) + ajout manuel ──
+function DressingStep({ draft, setDraft }) {
+  const dressing = draft.dressing;
+  const addRow = () => setDraft(d => ({ ...d, dressing:[...d.dressing, emptyDressingItem()] }));
+  const removeRow = (idx) => setDraft(d => ({ ...d, dressing: d.dressing.filter((_, i) => i !== idx) }));
+  const updateRow = (idx, field, val) => setDraft(d => {
+    const next = [...d.dressing];
+    next[idx] = { ...next[idx], [field]: val };
+    return { ...d, dressing: next };
+  });
+
+  return (
+    <div>
+      <h2 style={{ fontSize:"1.5rem", marginBottom:".4rem" }}>Votre dressing actuel</h2>
+      <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.25rem" }}>
+        Capsule évite les doublons et propose des pièces qui complètent ce que vous avez déjà. Cette étape est entièrement optionnelle.
+      </p>
+      <div style={{ border:"2px dashed var(--warm-gray)", borderRadius:"2px", padding:"1.5rem", textAlign:"center", marginBottom:"1.25rem", cursor:"pointer" }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:".5rem", color:"var(--stone)" }}>
+          <Icon name="camera" size={26}/>
+        </div>
+        <div style={{ fontWeight:500, fontSize:".85rem" }}>Scanner via photo</div>
+        <div style={{ fontSize:".72rem", color:"var(--stone)", marginTop:".2rem" }}>L'IA détecte automatiquement vos pièces</div>
+      </div>
+      <div style={{ display:"flex", alignItems:"center", gap:".75rem", margin:"1.25rem 0" }}>
+        <div style={{ flex:1, height:"1px", background:"var(--bone)" }}/>
+        <span style={{ fontSize:".72rem", color:"var(--stone)", whiteSpace:"nowrap" }}>ou ajouter manuellement</span>
+        <div style={{ flex:1, height:"1px", background:"var(--bone)" }}/>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:".6rem", marginBottom:"1rem" }}>
+        {dressing.map((item, idx) => (
+          <div key={idx} style={{ background:"var(--white)", border:"1px solid var(--bone)", borderRadius:"2px", padding:".75rem", display:"flex", flexWrap:"wrap", gap:".4rem", alignItems:"center" }}>
+            <select value={item.type} onChange={e => updateRow(idx, "type", e.target.value)} style={dressingSelectStyle}>
+              <option value="">Type</option>
+              {VET_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={item.brand} onChange={e => updateRow(idx, "brand", e.target.value)} style={dressingSelectStyle}>
+              <option value="">Marque</option>
+              {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+              <option value="Autre">Autre</option>
+            </select>
+            <select value={item.color} onChange={e => updateRow(idx, "color", e.target.value)} style={dressingSelectStyle}>
+              <option value="">Couleur</option>
+              {COULEURS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={item.cut} onChange={e => updateRow(idx, "cut", e.target.value)} style={dressingSelectStyle}>
+              <option value="">Coupe</option>
+              {COUPES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button onClick={() => removeRow(idx)} aria-label="Supprimer cette pièce" style={{ background:"none", border:"none", color:"var(--warm-gray)", fontSize:".9rem", padding:".2rem .3rem", flexShrink:0 }}>✕</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addRow} className="btn-ghost" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:".4rem" }}>
+        <Icon name="plus" size={14}/> Ajouter une pièce
+      </button>
+    </div>
+  );
+}
+
+const dressingSelectStyle = { flex:"1 1 90px", border:"1px solid var(--bone)", borderRadius:"2px", padding:".4rem", fontSize:".76rem", background:"var(--cream)" };
+
 
 // ═══════════════════════════════════════════════════════════════
 // LISTING PAGE
@@ -923,7 +998,7 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
               style={{display:"flex",alignItems:"center",gap:".25rem",background:"none",border:"1px solid #EAE4DA",borderRadius:"9999px",padding:".2rem .45rem .2rem .2rem",cursor:"pointer"}}
             >
               <div style={{width:"22px",height:"22px",borderRadius:"50%",background:"#B5694A",color:"#fff",fontSize:".65rem",fontFamily:"'Jost',sans-serif",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                {profile?.prenom?.[0]||"P"}
+                {profile?.name?.[0]||"P"}
               </div>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#28211C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
             </button>
@@ -945,13 +1020,13 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
       <div className="ls-profile-bar">
         <div style={{display:"flex",alignItems:"center",gap:".5rem",flexWrap:"wrap"}}>
           <span style={{fontSize:".78rem"}}>
-            Profil&nbsp;:&nbsp;<em style={{fontFamily:"'Playfair Display',serif",color:"#D4A090",fontStyle:"italic"}}>{profile?.prenom||"Vous"}</em>
+            Profil&nbsp;:&nbsp;<em style={{fontFamily:"'Playfair Display',serif",color:"#D4A090",fontStyle:"italic"}}>{profile?.name||"Vous"}</em>
           </span>
-          {profile?.style && (
-            <span style={{background:"rgba(255,255,255,.1)",borderRadius:"9999px",padding:".15rem .55rem",fontSize:".68rem",flexShrink:0}}>
-              {STYLES_LIST.find(s=>s.id===profile.style)?.label || profile.style}
+          {(profile?.style||[]).map(s => (
+            <span key={s} style={{background:"rgba(255,255,255,.1)",borderRadius:"9999px",padding:".15rem .55rem",fontSize:".68rem",flexShrink:0}}>
+              {s}
             </span>
-          )}
+          ))}
         </div>
         <span className="ls-profile-bar-count">{displayed.length} pièces</span>
       </div>
@@ -1130,38 +1205,33 @@ function WishlistPanel({ products, onClose, onRemove, onOpen }) {
 }
 
 function ProfilePanel({ profile, onClose, onEdit, onSignOut }) {
-  const dressingStr = (profile?.dressing||[]).map(d=>`${d.color} ${d.type}${d.brand?` · ${d.brand}`:""}`);
+  const dressingStr = (profile?.dressing||[]).map(d=>`${d.color} ${d.type}${d.brand?` · ${d.brand}`:""}`.trim()).filter(Boolean);
+  const cuts = [...(profile?.cutsHauts||[]), ...(profile?.cutsBas||[])];
+  const sizeEntries = Object.entries(profile?.sizes||{}).filter(([,v])=>v);
   return (
     <div className="panel-overlay" onClick={onClose}>
       <div className="panel-box" onClick={e=>e.stopPropagation()}>
         <div className="panel-header">
-          <h2 className="panel-title">My Profile</h2>
+          <h2 className="panel-title">Mon profil</h2>
           <button className="modal-close" style={{position:"static"}} onClick={onClose}>✕</button>
         </div>
         <div className="panel-list">
           <div className="profile-row">
-            <div className="profile-avatar">{profile?.prenom?.[0]}</div>
+            <div className="profile-avatar">{profile?.name?.[0]}</div>
             <div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:600,color:"#0F0F0F"}}>{profile?.prenom}</div>
-              <div style={{fontSize:10,color:"#8B7355",letterSpacing:".1em",textTransform:"uppercase"}}>Capsule member</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:600,color:"#1C1510"}}>{profile?.name}</div>
+              <div style={{fontSize:10,color:"#7C7268",letterSpacing:".1em",textTransform:"uppercase"}}>Membre Capsule{profile?.gender?` · ${profile.gender}`:""}</div>
             </div>
           </div>
-          {[
-            {icon:"✨",label:"Style",val:profile?.style},
-            {icon:"🧭",label:"Discovery mode",val:profile?.ouverture==="open"?"Open to new brands":"Familiar universe only"},
-          ].filter(x=>x.val).map(x=>(
-            <div key={x.label} className="profile-section">
-              <div className="profile-section-lbl">{x.icon} {x.label}</div>
-              <div className="profile-section-val">{x.val}</div>
-            </div>
-          ))}
-          {(profile?.marques||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">🏷️ Brands ({profile.marques.length})</div><div className="chips-grid" style={{marginTop:8}}>{profile.marques.map(m=><span key={m} className="chip sel" style={{cursor:"default"}}>{m}</span>)}</div></div>}
-          {(profile?.tons||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">🎨 Colours</div><div className="chips-grid" style={{marginTop:8}}>{profile.tons.map(t=><span key={t} className="chip sel" style={{cursor:"default"}}>{t}</span>)}</div></div>}
-          {(profile?.coupes||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">✂️ Cuts</div><div className="chips-grid" style={{marginTop:8}}>{profile.coupes.map(c=><span key={c} className="chip sel" style={{cursor:"default"}}>{c}</span>)}</div></div>}
-          {Object.keys(profile?.tailles||{}).length>0&&<div className="profile-section"><div className="profile-section-lbl">📐 Sizes</div><div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>{TAILLES_CONFIG.map(cat=>profile?.tailles?.[cat.id]?(<div key={cat.id} style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"#8B7355"}}>{cat.icon} {cat.label}</span><span className="t-chip sel" style={{cursor:"default"}}>{profile.tailles[cat.id]}</span></div>):null)}</div></div>}
-          {dressingStr.length>0&&<div className="profile-section"><div className="profile-section-lbl">👗 Wardrobe ({dressingStr.length})</div><div className="chips-grid" style={{marginTop:8}}>{dressingStr.map((v,i)=><span key={i} className="chip" style={{cursor:"default",fontSize:11}}>{v}</span>)}</div></div>}
-          <button className="btn-outline" onClick={onEdit} style={{width:"100%",marginTop:4}}>✏️ Edit my profile</button>
-          <button className="btn-outline" onClick={onSignOut} style={{width:"100%",marginTop:8,color:"#8B7355",borderColor:"#D4C5B0"}}>Sign out</button>
+          {(profile?.style||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">✨ Style</div><div className="chips-grid" style={{marginTop:8}}>{profile.style.map(s=><span key={s} className="chip selected" style={{cursor:"default"}}>{s}</span>)}</div></div>}
+          <div className="profile-section"><div className="profile-section-lbl">🧭 Découvertes</div><div className="profile-section-val">{profile?.discovery==="open"?"Ouvert·e aux nouvelles marques":"Mes marques uniquement"}</div></div>
+          {(profile?.brands||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">🏷️ Marques ({profile.brands.length})</div><div className="chips-grid" style={{marginTop:8}}>{profile.brands.map(m=><span key={m} className="chip selected" style={{cursor:"default"}}>{m}</span>)}</div></div>}
+          {(profile?.tones||[]).length>0&&<div className="profile-section"><div className="profile-section-lbl">🎨 Tons</div><div className="chips-grid" style={{marginTop:8}}>{profile.tones.map(t=><span key={t} className="chip selected" style={{cursor:"default"}}>{t}</span>)}</div></div>}
+          {cuts.length>0&&<div className="profile-section"><div className="profile-section-lbl">✂️ Coupes</div><div className="chips-grid" style={{marginTop:8}}>{cuts.map(c=><span key={c} className="chip selected" style={{cursor:"default"}}>{c}</span>)}</div></div>}
+          {sizeEntries.length>0&&<div className="profile-section"><div className="profile-section-lbl">📐 Tailles</div><div style={{marginTop:8,display:"flex",flexDirection:"column",gap:5}}>{sizeEntries.map(([k,v])=>(<div key={k} style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"#7C7268"}}>{SIZE_LABELS[k]||k}</span><span className="chip selected" style={{cursor:"default"}}>{v}</span></div>))}</div></div>}
+          {dressingStr.length>0&&<div className="profile-section"><div className="profile-section-lbl">👗 Dressing ({dressingStr.length})</div><div className="chips-grid" style={{marginTop:8}}>{dressingStr.map((v,i)=><span key={i} className="chip" style={{cursor:"default",fontSize:11}}>{v}</span>)}</div></div>}
+          <button className="btn-outline" onClick={onEdit} style={{width:"100%",marginTop:4}}>✏️ Modifier mon profil</button>
+          <button className="btn-outline" onClick={onSignOut} style={{width:"100%",marginTop:8,color:"#7C7268",borderColor:"#EAE4DA"}}>Se déconnecter</button>
         </div>
       </div>
     </div>
@@ -1186,7 +1256,31 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 .anim-forward{animation:sr .26s cubic-bezier(.22,.68,0,1.2) both}
 .anim-back{animation:sl .26s cubic-bezier(.22,.68,0,1.2) both}
 
-/* ── ONBOARDING ── */
+/* ── ONBOARDING (copie conforme prototype) ── */
+:root{--warm-gray:#BDB5A8;--white:#FDFAF7;--success:#5A8060;--error:#B84040}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideInRight{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideInLeft{from{transform:translateX(-24px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.fade-in{animation:fadeIn .35s ease both}
+.step-enter-fwd{animation:slideInRight .3s ease both}
+.step-enter-back{animation:slideInLeft .3s ease both}
+.phone-frame{width:100%;max-width:430px;margin:0 auto;background:var(--cream);min-height:100vh;position:relative;overflow-x:hidden}
+@media(min-width:480px){.phone-frame{box-shadow:0 0 60px rgba(28,21,16,.12)}}
+.phone-frame h1,.phone-frame h2,.phone-frame h3{font-family:'Playfair Display',serif;font-weight:400;font-style:italic;color:var(--ink)}
+.ob-fieldlabel{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--stone);margin-bottom:.4rem}
+.ob-text-input{width:100%;border:1px solid var(--bone);border-radius:2px;padding:.85rem 1rem;font-size:1rem;background:var(--white);outline:none;font-family:'Jost',sans-serif;color:var(--charcoal)}
+.ob-text-input:focus{border-color:var(--accent)}
+.phone-frame .btn-primary{width:100%;background:var(--ink);color:var(--white);border:none;border-radius:2px;padding:.85rem;font-size:.78rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;transition:background .2s;cursor:pointer;font-family:'Jost',sans-serif}
+.phone-frame .btn-primary:hover:not(:disabled){background:var(--accent)}
+.phone-frame .btn-primary:disabled{background:var(--warm-gray);cursor:not-allowed}
+.phone-frame .btn-ghost{width:100%;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:.8rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;cursor:pointer;font-family:'Jost',sans-serif}
+.phone-frame .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.chip{border:1px solid var(--bone);background:var(--white);color:var(--charcoal);border-radius:9999px;padding:.45rem 1rem;font-size:.8rem;transition:all .18s;white-space:nowrap;cursor:pointer;font-family:'Jost',sans-serif}
+.chip.selected{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.chip:hover:not(.selected){border-color:var(--accent-light)}
+
+/* ── ONBOARDING (legacy, conservé pour AuthScreen) ── */
 .ob-root{display:flex;min-height:100vh}
 .ob-side{width:268px;min-height:100vh;background:#0F0F0F;padding:40px 30px;display:flex;flex-direction:column;position:sticky;top:0;flex-shrink:0;overflow:hidden}
 .ob-brand{margin-bottom:48px}
@@ -1240,12 +1334,7 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 .wt-remove{margin-left:auto;background:none;border:none;cursor:pointer;color:#8B7355;font-size:16px;line-height:1}
 
 /* Chips */
-.chips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:4px}
-.chips-grid.two{grid-template-columns:1fr 1fr}
-.chip{padding:8px 12px;border:1px solid #DDD5C8;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#0F0F0F;text-align:left;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chip:hover{border-color:#8B7355}
-.chip.sel{background:#0F0F0F;color:#F7F3EE;border-color:#0F0F0F}
-.chip.sm{font-size:11px;padding:6px 10px}
+.chips-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
 
 /* Style grid */
 .style-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
