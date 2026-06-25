@@ -328,6 +328,12 @@ function LoadingDots() {
   return <span className="dots-loading"><span/><span/><span/></span>;
 }
 
+function AIDot() {
+  return <span style={{ display:"inline-block", width:"6px", height:"6px", borderRadius:"50%", background:"var(--accent)", animation:"pulse 2s infinite", marginRight:"6px", marginTop:"6px", flexShrink:0 }}/>;
+}
+
+const FALLBACK_LISTING_INSIGHT = "Votre sélection du moment, choisie selon votre style et vos marques préférées.";
+
 function LoadingScreen() {
   return (
     <div className="phone-frame fade-in" style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--ink)" }}>
@@ -1095,6 +1101,12 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
         <span className="ls-profile-bar-count">{displayed.length} pièces</span>
       </div>
 
+      {/* Insight IA */}
+      <div className="ls-insight">
+        <AIDot/>
+        <span className="ls-insight-text">{FALLBACK_LISTING_INSIGHT}</span>
+      </div>
+
       {/* Catégories */}
       <div className="ls-categories">
         {TYPES.map(t => (
@@ -1200,29 +1212,29 @@ function ProductModal({ product, isWished, onWish, onClose, insight, loading }) 
             <div className="modal-brand">{product.brand}</div>
             <h2 className="modal-name">{product.name}</h2>
             <div className="modal-match">
-              <div className="modal-match-lbl"><span>AI compatibility</span><span>{product.score}%</span></div>
+              <div className="modal-match-lbl"><span>Compatibilité avec votre profil</span><span>{product.score}%</span></div>
               <div className="modal-track"><div className="modal-fill" style={{width:`${product.score}%`}}/></div>
             </div>
             <div className="modal-insight">
               <span className="modal-insight-icon">✦</span>
               {loading
-                ? <span className="modal-loading">Analysing your profile…</span>
+                ? <span className="modal-loading">Analyse de votre profil…</span>
                 : <span className="modal-insight-text">{insight||"—"}</span>
               }
             </div>
             <div className="modal-details">
-              {[["Colour",product.color],["Size",product.size],["Category",product.type],["Price",`€${product.price}`]].map(([l,v])=>(
+              {[["Couleur",product.color],["Taille",product.size],["Catégorie",product.type],["Prix",`${product.price} €`]].map(([l,v])=>(
                 <div key={l} className="modal-detail">
                   <span className="modal-detail-lbl">{l}</span>
-                  <span className="modal-detail-val" style={l==="Price"?{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600}:{}}>{v}</span>
+                  <span className="modal-detail-val">{v}</span>
                 </div>
               ))}
             </div>
             <div className="modal-actions">
-              <a href="#" target="_blank" rel="noopener noreferrer" className="btn-primary">Shop at {product.brand} →</a>
               <button onClick={e=>onWish(product.id,e)} className={`btn-outline${isWished?" wished":""}`}>
-                {isWished?"♥ Saved to wishlist":"♡ Save to wishlist"}
+                {isWished?"♥ Dans ma wishlist":"♡ Ajouter à la wishlist"}
               </button>
+              <a href="#" target="_blank" rel="noopener noreferrer" className="btn-primary">Voir sur {product.brand.toUpperCase()} →</a>
             </div>
           </div>
         </div>
@@ -1236,30 +1248,28 @@ function WishlistPanel({ products, onClose, onRemove, onOpen }) {
     <div className="panel-overlay" onClick={onClose}>
       <div className="panel-box" onClick={e=>e.stopPropagation()}>
         <div className="panel-header">
-          <div><h2 className="panel-title">Wishlist</h2>{products.length>0&&<p className="panel-sub">{products.length} item{products.length>1?"s":""} saved</p>}</div>
+          <div><h2 className="panel-title">Ma Wishlist</h2>{products.length>0&&<p className="panel-sub">{products.length} pièce{products.length>1?"s":""}</p>}</div>
           <button className="modal-close" style={{position:"static"}} onClick={onClose}>✕</button>
         </div>
         {products.length===0
-          ? <div className="panel-empty"><div style={{fontSize:44}}>♡</div><p>No saved items yet</p></div>
+          ? <div className="panel-empty"><div style={{fontSize:44,opacity:.4}}>♡</div><p style={{fontFamily:"'Playfair Display',serif",fontStyle:"italic",color:"var(--charcoal)"}}>Votre wishlist est vide</p><p style={{fontSize:12}}>Ajoutez vos pièces favorites depuis le listing</p></div>
           : <div className="panel-list">
               {products.map(p=>(
-                <div key={p.id} className="panel-item" onClick={()=>onOpen(p)}>
-                  <img src={p.image} alt={p.name} className="panel-thumb"
-                    onError={e=>{e.target.src=`https://placehold.co/80x100/E8E0D5/8B7355?text=${encodeURIComponent(p.brand)}`;}}/>
+                <div key={p.id} className="panel-item">
+                  <img src={p.image} alt={p.name} className="panel-thumb" onClick={()=>onOpen(p)} style={{cursor:"pointer"}}
+                    onError={e=>{e.target.src=`https://placehold.co/80x100/EAE4DA/7C7268?text=${encodeURIComponent(p.brand)}`;}}/>
                   <div className="panel-item-info">
                     <div className="panel-item-brand">{p.brand}</div>
                     <div className="panel-item-name">{p.name}</div>
-                    <div className="panel-item-price">€{p.price}</div>
+                    <div className="panel-item-price">{p.price} €</div>
+                    <button onClick={()=>onOpen(p)} style={{background:"none",border:"none",color:"var(--accent)",fontSize:".72rem",padding:0,cursor:"pointer",marginTop:4}}>Voir →</button>
                   </div>
-                  <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center"}}>
-                    <a href="#" onClick={e=>e.stopPropagation()} className="btn-primary" style={{fontSize:11,padding:"6px 12px",whiteSpace:"nowrap"}}>Buy</a>
-                    <button onClick={e=>{e.stopPropagation();onRemove(p.id);}} style={{background:"none",border:"none",cursor:"pointer",color:"#C4A882",fontSize:20}}>♥</button>
-                  </div>
+                  <button onClick={e=>{e.stopPropagation();onRemove(p.id);}} style={{background:"none",border:"none",cursor:"pointer",color:"var(--stone)",fontSize:16,alignSelf:"flex-start"}}>✕</button>
                 </div>
               ))}
               <div className="panel-total">
-                <span>Estimated total</span>
-                <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:600,color:"#0F0F0F"}}>€{products.reduce((s,p)=>s+p.price,0)}</span>
+                <span>Total estimé</span>
+                <span>{products.reduce((s,p)=>s+p.price,0)} €</span>
               </div>
             </div>
         }
@@ -1309,7 +1319,7 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--cream:#F6F2EC;--bone:#EAE4DA;--stone:#7C7268;--charcoal:#28211C;--ink:#1C1510;--accent:#B5694A;--accent-light:#D4A090;--accent-pale:#FAF0EB}
 body{background:var(--cream);font-family:'Jost',sans-serif}
-::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#C4A882;border-radius:2px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--accent-light);border-radius:2px}
 @keyframes fu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fi{from{opacity:0}to{opacity:1}}
 @keyframes sr{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
@@ -1461,61 +1471,63 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 .ls-chip{flex-shrink:0;padding:.4rem .9rem;border-radius:9999px;font-size:.78rem;border:none;background:var(--bone);color:var(--charcoal);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 .ls-chip.active{background:var(--ink);color:#fff}
 .ls-filter-bar{display:flex;align-items:center;justify-content:space-between;padding:.3rem 1.25rem .8rem;gap:.5rem;border-bottom:1px solid var(--bone)}
-.ls-select{padding:.35rem .8rem;border:1px solid var(--bone);border-radius:9999px;background:#fff;font-size:.75rem;cursor:pointer;color:var(--charcoal);font-family:inherit;outline:none;appearance:none;-webkit-appearance:none}
+.ls-select{padding:.35rem .6rem;border:1px solid var(--warm-gray);border-radius:2px;background:var(--white);font-size:.75rem;cursor:pointer;color:var(--charcoal);font-family:inherit;outline:none}
+.ls-insight{background:var(--accent-pale);padding:.75rem 1.25rem;font-size:.82rem;color:var(--charcoal);display:flex;align-items:flex-start;gap:.1rem}
+.ls-insight-text{font-style:italic;font-family:'Playfair Display',serif}
 .ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.75rem;padding:1rem 1.25rem}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,15,15,.65);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fi .2s ease}
-.modal-box{background:#F7F3EE;border-radius:14px;max-width:800px;width:100%;max-height:90vh;overflow:auto;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.25)}
-.modal-close{position:absolute;top:13px;right:13px;background:rgba(247,243,238,.92);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;z-index:10;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;transition:background .2s}
-.modal-close:hover{background:#EDE5DA}
+.modal-overlay{position:fixed;inset:0;background:rgba(28,21,16,.55);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fi .2s ease}
+.modal-box{background:var(--cream);border-radius:4px;max-width:800px;width:100%;max-height:90vh;overflow:auto;position:relative;box-shadow:0 40px 100px rgba(28,21,16,.28)}
+.modal-close{position:absolute;top:13px;right:13px;background:rgba(246,242,236,.92);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;z-index:10;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;transition:background .2s;color:var(--charcoal)}
+.modal-close:hover{background:var(--bone)}
 .modal-inner{display:grid;grid-template-columns:1fr 1fr;min-height:440px}
-.modal-img-wrap{position:relative;border-radius:14px 0 0 14px;overflow:hidden}
+.modal-img-wrap{position:relative;border-radius:4px 0 0 4px;overflow:hidden}
 .modal-img{width:100%;height:100%;object-fit:cover;min-height:340px}
 .modal-info{padding:34px 30px;display:flex;flex-direction:column;gap:16px}
-.modal-brand{font-size:9px;font-weight:600;letter-spacing:.14em;color:#8B7355;text-transform:uppercase}
-.modal-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:#0F0F0F;line-height:1.25}
+.modal-brand{font-size:.6rem;font-weight:500;letter-spacing:.16em;color:var(--stone);text-transform:uppercase}
+.modal-name{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:400;font-style:italic;color:var(--ink);line-height:1.25}
 .modal-match{display:flex;flex-direction:column;gap:5px}
-.modal-match-lbl{display:flex;justify-content:space-between;font-size:11px;color:#8B7355}
-.modal-track{height:3px;background:#E5DDD0;border-radius:3px;overflow:hidden}
-.modal-fill{height:100%;background:linear-gradient(90deg,#C4A882,#0F0F0F);border-radius:3px;transition:width .8s ease}
-.modal-insight{background:#EFE9E0;border-radius:9px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start}
-.modal-insight-icon{color:#C4A882;font-size:13px;flex-shrink:0;margin-top:2px}
-.modal-insight-text{font-size:14px;color:#3D2B1F;line-height:1.6;font-style:italic;font-family:'Playfair Display',serif}
-.modal-loading{font-size:13px;color:#8B7355;font-style:italic;animation:sh 1.2s infinite}
+.modal-match-lbl{display:flex;justify-content:space-between;font-size:.72rem;color:var(--stone)}
+.modal-match-lbl span:last-child{color:var(--accent);font-weight:500}
+.modal-track{height:5px;background:var(--bone);border-radius:2px;overflow:hidden}
+.modal-fill{height:100%;background:linear-gradient(90deg,var(--accent-light),var(--accent));border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.modal-insight{background:var(--accent-pale);border-left:3px solid var(--accent);border-radius:2px;padding:1rem;display:flex;gap:9px;align-items:flex-start}
+.modal-insight-icon{color:var(--accent);font-size:13px;flex-shrink:0;margin-top:2px}
+.modal-insight-text{font-size:.85rem;color:var(--charcoal);line-height:1.7;font-weight:300}
+.modal-loading{font-size:13px;color:var(--stone);font-style:italic;animation:sh 1.2s infinite}
 .modal-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-detail{display:flex;flex-direction:column;gap:2px}
-.modal-detail-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#8B7355;font-weight:500}
-.modal-detail-val{font-size:14px;color:#0F0F0F}
+.modal-detail-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--stone);font-weight:500}
+.modal-detail-val{font-size:.85rem;color:var(--charcoal)}
 .modal-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto}
 
-.btn-primary{display:block;text-align:center;background:#0F0F0F;color:#F7F3EE;padding:12px 20px;border-radius:100px;font-size:13px;text-decoration:none;font-family:inherit;letter-spacing:.07em;transition:background .2s;font-weight:500;border:none;cursor:pointer}
-.btn-primary:hover{background:#C4A882}
-.btn-outline{border:1px solid #0F0F0F;border-radius:100px;padding:11px 20px;font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:.05em;transition:all .2s;background:transparent;color:#0F0F0F}
-.btn-outline:hover{background:#EFE9E0}
-.btn-outline.wished{background:#0F0F0F;color:#F7F3EE}
+.btn-primary{display:block;text-align:center;background:var(--ink);color:var(--white);padding:.85rem 20px;border-radius:2px;font-size:.78rem;text-decoration:none;font-family:'Jost',sans-serif;letter-spacing:.07em;text-transform:uppercase;transition:background .2s;font-weight:500;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--accent)}
+.btn-outline{border:1px solid var(--ink);border-radius:2px;padding:.8rem 20px;font-size:.78rem;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;background:transparent;color:var(--ink)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-outline.wished{background:var(--accent-pale);border-color:var(--accent);color:var(--accent)}
 
 /* ── PANELS ── */
-.panel-overlay{position:fixed;inset:0;background:rgba(15,15,15,.4);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end;animation:fi .2s ease}
-.panel-box{background:#F7F3EE;width:380px;height:100%;overflow-y:auto;box-shadow:-20px 0 50px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:pi .28s cubic-bezier(.22,.68,0,1.1) both}
-.panel-header{display:flex;align-items:center;justify-content:space-between;padding:24px 20px 16px;border-bottom:1px solid #E5DDD0;flex-shrink:0}
-.panel-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:#0F0F0F}
-.panel-sub{font-size:11px;color:#8B7355;margin-top:2px}
-.panel-list{padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
-.panel-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:9px;background:#fff;border:1px solid #EDE5DA;cursor:pointer;transition:box-shadow .2s}
-.panel-item:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
-.panel-thumb{width:64px;height:80px;object-fit:cover;border-radius:7px;flex-shrink:0}
+.panel-overlay{position:fixed;inset:0;background:rgba(28,21,16,.4);backdrop-filter:blur(3px);z-index:200;display:flex;justify-content:flex-end;animation:fi .2s ease}
+.panel-box{background:var(--white);width:380px;max-width:100%;height:100%;overflow-y:auto;box-shadow:-20px 0 50px rgba(28,21,16,.12);display:flex;flex-direction:column;animation:pi .28s cubic-bezier(.22,.68,0,1.1) both}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem;border-bottom:1px solid var(--bone);flex-shrink:0}
+.panel-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;font-style:italic;color:var(--ink)}
+.panel-sub{font-size:11px;color:var(--stone);margin-top:2px}
+.panel-list{padding:1rem 1.25rem;display:flex;flex-direction:column;gap:10px;flex:1}
+.panel-item{display:flex;gap:.75rem;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--bone);cursor:pointer}
+.panel-thumb{width:56px;height:72px;object-fit:cover;border-radius:2px;flex-shrink:0}
 .panel-item-info{flex:1;min-width:0}
-.panel-item-brand{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8B7355;font-weight:600;margin-bottom:2px}
-.panel-item-name{font-size:12px;color:#0F0F0F;line-height:1.4;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.panel-item-price{font-family:'Playfair Display',serif;font-size:15px;color:#0F0F0F;font-weight:600}
-.panel-total{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #E5DDD0;margin-top:4px;font-size:12px;color:#8B7355}
-.panel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8B7355;gap:8px;font-size:13px}
+.panel-item-brand{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--stone);margin-bottom:2px}
+.panel-item-name{font-size:.85rem;color:var(--charcoal);line-height:1.4;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel-item-price{font-size:.8rem;color:var(--charcoal)}
+.panel-total{display:flex;justify-content:space-between;align-items:center;padding:1rem 0 .3rem;border-top:1px solid var(--bone);margin-top:4px;font-size:.88rem;font-weight:500;color:var(--charcoal)}
+.panel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--stone);gap:8px;font-size:13px}
 .profile-row{display:flex;align-items:center;gap:13px;padding-bottom:4px}
-.profile-avatar{width:48px;height:48px;background:#0F0F0F;color:#F7F3EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:600;flex-shrink:0}
-.profile-section{display:flex;flex-direction:column;gap:5px;padding:11px 12px;background:#fff;border-radius:9px;border:1px solid #EDE5DA}
-.profile-section-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#8B7355;font-weight:500}
-.profile-section-val{font-size:13px;color:#0F0F0F}
+.profile-avatar{width:48px;height:48px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:600;flex-shrink:0}
+.profile-section{display:flex;flex-direction:column;gap:5px;padding:11px 12px;background:var(--cream);border-radius:2px;border:1px solid var(--bone)}
+.profile-section-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--stone);font-weight:500}
+.profile-section-val{font-size:.82rem;color:var(--charcoal)}
 
 @media(max-width:768px){
   .ob-side{display:none}
