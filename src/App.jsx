@@ -316,51 +316,61 @@ export default function CapsuleApp() {
 // LOADING
 // ═══════════════════════════════════════════════════════════════
 
+function Logo({ light = false }) {
+  return (
+    <span style={{ fontFamily:"'Playfair Display',serif", fontWeight:500, letterSpacing:".18em" }}>
+      CAPS<span style={{ color: light ? "var(--accent-light)" : "var(--accent)", fontStyle:"italic" }}>U</span>LE
+    </span>
+  );
+}
+
+function LoadingDots() {
+  return <span className="dots-loading"><span/><span/><span/></span>;
+}
+
 function LoadingScreen() {
   return (
-    <div className="auth-root">
-      <div style={{ textAlign:"center" }}>
-        <div className="auth-logo">Capsule</div>
-        <div className="auth-tagline">Your AI personal shopper</div>
+    <div className="phone-frame fade-in" style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--ink)" }}>
+      <div style={{ textAlign:"center", color:"#fff" }}>
+        <div style={{ fontSize:"1.7rem" }}><Logo light/></div>
+        <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:".95rem", color:"rgba(253,250,247,.65)", marginTop:".6rem" }}>
+          Votre dressing rêvé
+        </p>
       </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AUTH
+// AUTH — copie conforme du prototype
 // ═══════════════════════════════════════════════════════════════
 
 function AuthScreen() {
-  const [mode, setMode]           = useState("login"); // login | signup | forgot
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [name, setName]           = useState("");
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
-  const [forgotSent, setForgotSent] = useState(false);
+  const [mode, setMode]               = useState("signup"); // signup | login
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
+  const [showPw, setShowPw]           = useState(false);
+  const [error, setError]             = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showForgot, setShowForgot]   = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent]   = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
-  const switchMode = (m) => { setMode(m); setError(null); };
+  const fieldStyle = { width:"100%", border:"1px solid var(--bone)", borderRadius:"2px", padding:".8rem 1rem", fontSize:".9rem", background:"var(--white)", outline:"none", fontFamily:"'Jost',sans-serif", color:"var(--charcoal)" };
+  const labelStyle = { fontSize:".68rem", textTransform:"uppercase", letterSpacing:".05em", color:"var(--stone)", marginBottom:".4rem" };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (mode === "signup" && password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-    setLoading(true);
+  const handleSubmit = async () => {
+    if (!email.trim() || !email.includes("@")) { setError("Merci de renseigner une adresse email valide."); return; }
+    if (password.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); return; }
+    setError(""); setLoading(true);
     try {
-      if (mode === "signup") {
-        const { error: err } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { full_name: name } },
-        });
-        if (err) throw err;
-      } else {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-        if (err) throw err;
-      }
+      const { error: err } = mode === "signup"
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
+      if (err) throw err;
+      // La redirection vers onboarding/listing est gérée par onAuthStateChange.
     } catch (err) {
       setError(err.message);
     } finally {
@@ -369,114 +379,167 @@ function AuthScreen() {
   };
 
   const handleGoogle = async () => {
-    setError(null);
+    setError(""); setGoogleLoading(true);
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
     });
-    if (err) setError(err.message);
+    if (err) { setError(err.message); setGoogleLoading(false); }
   };
 
-  const handleForgot = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const handleForgot = async () => {
+    if (!forgotEmail.trim() || !forgotEmail.includes("@")) return;
+    setForgotLoading(true);
     try {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      await supabase.auth.resetPasswordForEmail(forgotEmail, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      if (err) throw err;
+      setForgotSent(true); // message neutre : on confirme quoi qu'il arrive
+    } catch {
       setForgotSent(true);
-    } catch (err) {
-      setError(err.message);
     } finally {
-      setLoading(false);
+      setForgotLoading(false);
     }
   };
 
-  if (mode === "forgot") {
-    return (
-      <div className="auth-root">
-        <div className="auth-card">
-          <div className="auth-logo">Capsule</div>
-          <div className="auth-tagline">Your AI personal shopper</div>
-          {forgotSent ? (
-            <div className="auth-success">
-              <p>Check your inbox — we've sent you a reset link.</p>
-              <button className="auth-link" onClick={() => { switchMode("login"); setForgotSent(false); }}>
-                ← Back to sign in
-              </button>
-            </div>
-          ) : (
-            <>
-              <h2 className="auth-title">Reset password</h2>
-              <p className="auth-desc">Enter your email and we'll send you a reset link.</p>
-              <form onSubmit={handleForgot}>
-                <label className="ob-label">Email</label>
-                <input className="ob-input" type="email" value={email}
-                  onChange={e => setEmail(e.target.value)} required autoFocus />
-                {error && <div className="auth-error">{error}</div>}
-                <button className="next-btn" style={{width:"100%",borderRadius:8,marginTop:4}} disabled={loading}>
-                  {loading ? "Sending…" : "Send reset link →"}
-                </button>
-              </form>
-              <button className="auth-link" onClick={() => switchMode("login")}>← Back to sign in</button>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="auth-root">
-      <div className="auth-card">
-        <div className="auth-logo">Capsule</div>
-        <div className="auth-tagline">Your AI personal shopper</div>
-        <h2 className="auth-title">{mode === "login" ? "Welcome back" : "Create your account"}</h2>
-        <p className="auth-desc">{mode === "login" ? "Sign in to your style profile." : "Start building your capsule wardrobe."}</p>
+    <div className="phone-frame fade-in" style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
+      {/* Hero sombre + logo */}
+      <div style={{ background:"var(--ink)", padding:"3rem 1.5rem 2.5rem", color:"#fff" }}>
+        <div style={{ fontSize:"1.6rem", marginBottom:".6rem" }}><Logo light/></div>
+        <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:"1rem", color:"rgba(253,250,247,.7)", maxWidth:"260px" }}>
+          Votre dressing rêvé, chaque pièce choisie pour vous.
+        </p>
+      </div>
 
-        <button className="auth-google" onClick={handleGoogle} disabled={loading}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C16.658 14.013 17.64 11.706 17.64 9.2z" fill="#4285F4"/>
-            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-            <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </button>
+      <div style={{ flex:1, padding:"1.75rem 1.5rem", display:"flex", flexDirection:"column" }}>
+        {/* Onglets */}
+        <div style={{ display:"flex", borderBottom:"1px solid var(--bone)", marginBottom:"1.5rem" }}>
+          {[{ k:"signup", l:"Créer un compte" }, { k:"login", l:"Se connecter" }].map(tab => (
+            <button key={tab.k} onClick={() => { setMode(tab.k); setError(""); }} style={{
+              flex:1, background:"none", border:"none", padding:".7rem 0", fontSize:".82rem",
+              fontWeight: mode === tab.k ? 500 : 400, color: mode === tab.k ? "var(--accent)" : "var(--stone)",
+              borderBottom: mode === tab.k ? "2px solid var(--accent)" : "2px solid transparent", marginBottom:"-1px",
+              cursor:"pointer", fontFamily:"'Jost',sans-serif",
+            }}>{tab.l}</button>
+          ))}
+        </div>
 
-        <div className="auth-divider"><span>or</span></div>
+        <div style={labelStyle}>Adresse email</div>
+        <input type="email" value={email} placeholder="julia@exemple.com"
+          onChange={e => setEmail(e.target.value)} style={{ ...fieldStyle, marginBottom:"1rem" }} />
 
-        <form onSubmit={handleSubmit}>
-          {mode === "signup" && (
-            <>
-              <label className="ob-label">First name</label>
-              <input className="ob-input" type="text" placeholder="Sophie" value={name}
-                onChange={e => setName(e.target.value)} />
-            </>
-          )}
-          <label className="ob-label">Email</label>
-          <input className="ob-input" type="email" placeholder="you@example.com" value={email}
-            onChange={e => setEmail(e.target.value)} required />
-          <label className="ob-label">Password</label>
-          <input className="ob-input" type="password"
-            placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"}
-            value={password} onChange={e => setPassword(e.target.value)} required />
-          {error && <div className="auth-error">{error}</div>}
-          <button className="next-btn" style={{width:"100%",borderRadius:8,marginTop:4}} disabled={loading}>
-            {loading ? "…" : mode === "login" ? "Sign in →" : "Create account →"}
+        <div style={labelStyle}>Mot de passe</div>
+        <div style={{ position:"relative", marginBottom:".5rem" }}>
+          <input type={showPw ? "text" : "password"} value={password} placeholder="••••••••"
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSubmit()}
+            style={{ ...fieldStyle, padding:".8rem 2.5rem .8rem 1rem" }} />
+          <button onClick={() => setShowPw(s => !s)} aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            style={{ position:"absolute", right:".7rem", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"var(--stone)", padding:".2rem", display:"flex", alignItems:"center", cursor:"pointer" }}>
+            <Icon name={showPw ? "eyeOff" : "eye"} size={17}/>
           </button>
-        </form>
+        </div>
+
+        {mode === "signup" && (
+          <div style={{ display:"flex", alignItems:"center", gap:".35rem", marginBottom:".5rem" }}>
+            <span style={{
+              width:"14px", height:"14px", borderRadius:"50%", flexShrink:0,
+              border: password.length >= 6 ? "none" : "1px solid var(--warm-gray)",
+              background: password.length >= 6 ? "var(--success)" : "none",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              {password.length >= 6 && <Icon name="check" size={9} color="#fff"/>}
+            </span>
+            <span style={{ fontSize:".7rem", color: password.length >= 6 ? "var(--success)" : "var(--stone)" }}>
+              6 caractères minimum
+            </span>
+          </div>
+        )}
 
         {mode === "login" && (
-          <button className="auth-link" onClick={() => switchMode("forgot")}>Forgot your password?</button>
+          <button onClick={() => { setForgotEmail(email); setForgotSent(false); setShowForgot(true); }}
+            style={{ alignSelf:"flex-end", background:"none", border:"none", color:"var(--accent)", fontSize:".72rem", marginBottom:"1.25rem", padding:0, cursor:"pointer" }}>
+            Mot de passe oublié ?
+          </button>
         )}
-        <div className="auth-switch">
-          {mode === "login"
-            ? <>No account? <button className="auth-link-inline" onClick={() => switchMode("signup")}>Sign up</button></>
-            : <>Already a member? <button className="auth-link-inline" onClick={() => switchMode("login")}>Sign in</button></>
-          }
+        {mode === "signup" && <div style={{ marginBottom:"1.25rem" }}/>}
+
+        {error && <div style={{ color:"var(--error)", fontSize:".78rem", marginBottom:"1rem" }}>{error}</div>}
+
+        <button onClick={handleSubmit} disabled={loading} className="btn-primary" style={{ marginBottom:".85rem" }}>
+          {loading ? <LoadingDots/> : mode === "signup" ? "Créer mon compte" : "Se connecter"}
+        </button>
+
+        <div style={{ display:"flex", alignItems:"center", gap:".7rem", margin:".25rem 0 .85rem" }}>
+          <div style={{ flex:1, height:"1px", background:"var(--bone)" }}/>
+          <span style={{ fontSize:".7rem", color:"var(--warm-gray)" }}>ou</span>
+          <div style={{ flex:1, height:"1px", background:"var(--bone)" }}/>
+        </div>
+
+        <button onClick={handleGoogle} disabled={googleLoading} style={{
+          width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:".6rem",
+          background:"var(--white)", border:"1px solid var(--bone)", borderRadius:"2px", padding:".78rem",
+          fontSize:".82rem", color:"var(--charcoal)", fontWeight:500, cursor:"pointer",
+          fontFamily:"'Jost',sans-serif", opacity: googleLoading ? .6 : 1,
+        }}>
+          {googleLoading ? <LoadingDots/> : (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0012 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09a6.6 6.6 0 010-4.18V7.07H2.18a11 11 0 000 9.86l3.66-2.84z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 00-9.82 6.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+              </svg>
+              Continuer avec Google
+            </>
+          )}
+        </button>
+
+        <p style={{ fontSize:".7rem", color:"var(--warm-gray)", textAlign:"center", marginTop:"auto", paddingTop:"2rem" }}>
+          En continuant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
+        </p>
+      </div>
+
+      {/* Overlay mot de passe oublié */}
+      <div style={{
+        position:"fixed", inset:0, zIndex:90, background:"var(--cream)", maxWidth:"430px", margin:"0 auto",
+        transform: showForgot ? "translateX(0)" : "translateX(100%)", transition:"transform .3s ease",
+        display:"flex", flexDirection:"column",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:".6rem", padding:"1.1rem 1.25rem", borderBottom:"1px solid var(--bone)" }}>
+          <button onClick={() => setShowForgot(false)} style={{ background:"none", border:"none", padding:".3rem", color:"var(--charcoal)", cursor:"pointer" }}>
+            <Icon name="back" size={18}/>
+          </button>
+          <span style={{ fontSize:".92rem", fontWeight:500, color:"var(--charcoal)" }}>Mot de passe oublié</span>
+        </div>
+        <div style={{ flex:1, padding:"2rem 1.5rem" }}>
+          {!forgotSent ? (
+            <>
+              <p style={{ color:"var(--stone)", fontSize:".85rem", marginBottom:"1.5rem", lineHeight:1.6 }}>
+                Indiquez votre adresse email, nous vous enverrons un lien pour réinitialiser votre mot de passe.
+              </p>
+              <div style={labelStyle}>Adresse email</div>
+              <input type="email" value={forgotEmail} placeholder="julia@exemple.com"
+                onChange={e => setForgotEmail(e.target.value)} style={{ ...fieldStyle, marginBottom:"1.5rem" }} />
+              <button onClick={handleForgot} disabled={forgotLoading} className="btn-primary">
+                {forgotLoading ? <LoadingDots/> : "Envoyer le lien"}
+              </button>
+            </>
+          ) : (
+            <div style={{ textAlign:"center", paddingTop:"2rem" }}>
+              <div style={{ width:"52px", height:"52px", borderRadius:"50%", background:"var(--accent-pale)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 1rem" }}>
+                <Icon name="check" size={22} color="var(--accent)"/>
+              </div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:"1.05rem", color:"var(--charcoal)", marginBottom:".5rem" }}>
+                Email envoyé
+              </div>
+              <p style={{ color:"var(--stone)", fontSize:".85rem", lineHeight:1.6, marginBottom:"1.5rem" }}>
+                Si un compte existe pour {forgotEmail}, vous recevrez un lien de réinitialisation dans quelques instants.
+              </p>
+              <button onClick={() => setShowForgot(false)} className="btn-ghost">Retour à la connexion</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1263,6 +1326,11 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 @keyframes slideInRight{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideInLeft{from{transform:translateX(-24px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.dots-loading{display:inline-flex;align-items:center}
+.dots-loading span{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 2px;animation:blink 1.2s infinite}
+.dots-loading span:nth-child(2){animation-delay:.2s}
+.dots-loading span:nth-child(3){animation-delay:.4s}
 .fade-in{animation:fadeIn .35s ease both}
 .step-enter-fwd{animation:slideInRight .3s ease both}
 .step-enter-back{animation:slideInLeft .3s ease both}
