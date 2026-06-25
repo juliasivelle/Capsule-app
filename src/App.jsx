@@ -996,6 +996,29 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
   const [loadingInsight, setLoadingInsight] = useState(null);
   const [activeProduct, setActiveProduct]   = useState(null);
   const [showProfile, setShowProfile]       = useState(false);
+  const [searchOpen, setSearchOpen]         = useState(false);
+  const [searchQuery, setSearchQuery]       = useState("");
+  // Filtrage débouncé : la saisie reste fluide même si le catalogue grossit.
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const searchInputRef                      = useRef(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 150);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Focus auto à l'ouverture + fermeture sur Échap
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      const t = setTimeout(() => searchInputRef.current?.focus(), 350);
+      return () => clearTimeout(t);
+    }
+  }, [searchOpen]);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") setSearchOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Chargement initial de la wishlist depuis Supabase
   useEffect(() => {
@@ -1015,7 +1038,17 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
   const displayed = ALL_PRODUCTS
     .filter(p => filterBrand==="All" || p.brand===filterBrand)
     .filter(p => filterType==="All"  || (TYPE_MAP[filterType] || [filterType]).includes(p.type) || p.category===filterType)
+    .filter(p => {
+      if (!debouncedQuery.trim()) return true;
+      const q = normalizeText(debouncedQuery);
+      return normalizeText(`${p.brand} ${p.name} ${p.type} ${p.color}`).includes(q);
+    })
     .sort((a,b) => sortMode==="relevance" ? b.score-a.score : sortMode==="asc" ? a.price-b.price : b.price-a.price);
+
+  // Résultats de recherche (indépendants des filtres marque/catégorie), pour l'overlay
+  const searchResults = debouncedQuery.trim()
+    ? ALL_PRODUCTS.filter(p => normalizeText(`${p.brand} ${p.name} ${p.type} ${p.color}`).includes(normalizeText(debouncedQuery)))
+    : [];
 
   const wishlistProducts = ALL_PRODUCTS.filter(p => wishlist.includes(p.id));
 
@@ -1055,7 +1088,7 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
           CAPS<span style={{color:"#B5694A",fontStyle:"italic"}}>U</span>LE
         </div>
         <div className="ls-header-right">
-          <button className="ls-icon-btn" aria-label="Rechercher">
+          <button className="ls-icon-btn" aria-label="Rechercher" onClick={() => setSearchOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
           <button className="ls-icon-btn" onClick={() => setShowWishlist(true)} aria-label="Wishlist" style={{position:"relative"}}>
@@ -1152,6 +1185,78 @@ function ListingPage({ profile, userId, onEditProfile, onSignOut }) {
           onEdit={() => { setShowProfile(false); onEditProfile(); }}
           onSignOut={onSignOut} />
       )}
+
+      {/* Overlay de recherche plein écran */}
+      <div className="ls-search-overlay" style={{ transform: searchOpen ? "translateY(0)" : "translateY(-100%)" }}>
+        <div className="ls-search-head">
+          <div className="ls-logo" style={{ fontSize:"1.1rem", letterSpacing:".12em" }}>
+            CAPS<span style={{ color:"#B5694A", fontStyle:"italic" }}>U</span>LE
+          </div>
+          <button className="ls-icon-btn" aria-label="Fermer la recherche" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div style={{ padding:"2.5rem 1.5rem 1.25rem" }}>
+          <div className="ls-search-field">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C7268" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input ref={searchInputRef} type="text" value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Rechercher une pièce, une marque…" className="ls-search-input" />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} aria-label="Effacer" style={{ background:"none", border:"none", color:"var(--warm-gray)", padding:".2rem", cursor:"pointer", display:"flex" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {!searchQuery.trim() && (
+          <div style={{ padding:"0 1.5rem" }}>
+            <div className="ls-search-lbl">Catégories populaires</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem", marginBottom:"1.75rem" }}>
+              {TYPES.filter(t => t.key !== "All").map(t => (
+                <button key={t.key} onClick={() => setSearchQuery(t.label)} className="ls-search-sugg">{t.label}</button>
+              ))}
+            </div>
+            {(profile?.brands || []).length > 0 && (
+              <>
+                <div className="ls-search-lbl">Marques populaires</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:".5rem" }}>
+                  {profile.brands.map(b => (
+                    <button key={b} onClick={() => setSearchQuery(b)} className="ls-search-sugg accent">{b}</button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {searchQuery.trim() && (
+          <div style={{ flex:1, overflowY:"auto", padding:"0 1.5rem 1.5rem" }}>
+            <div className="ls-search-lbl">{searchResults.length} résultat{searchResults.length > 1 ? "s" : ""}</div>
+            {searchResults.length === 0 ? (
+              <div style={{ textAlign:"center", padding:"2rem 0", color:"var(--stone)", fontSize:".85rem" }}>
+                Aucun résultat pour «&nbsp;{searchQuery}&nbsp;»
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column" }}>
+                {searchResults.slice(0, 8).map(p => (
+                  <div key={p.id} className="ls-search-result" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProduct(p); }}>
+                    <img src={p.image} alt={p.name} className="ls-search-thumb"
+                      onError={e => { e.target.src = `https://placehold.co/46x58/EAE4DA/7C7268?text=${encodeURIComponent(p.brand)}`; }} />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:".62rem", textTransform:"uppercase", color:"var(--stone)", letterSpacing:".1em" }}>{p.brand}</div>
+                      <div style={{ fontSize:".85rem", color:"var(--charcoal)" }}>{p.name}</div>
+                    </div>
+                    <div style={{ fontSize:".8rem", color:"var(--charcoal)", flexShrink:0 }}>{p.price} €</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1474,6 +1579,16 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 .ls-select{padding:.35rem .6rem;border:1px solid var(--warm-gray);border-radius:2px;background:var(--white);font-size:.75rem;cursor:pointer;color:var(--charcoal);font-family:inherit;outline:none}
 .ls-insight{background:var(--accent-pale);padding:.75rem 1.25rem;font-size:.82rem;color:var(--charcoal);display:flex;align-items:flex-start;gap:.1rem}
 .ls-insight-text{font-style:italic;font-family:'Playfair Display',serif}
+.ls-search-overlay{position:fixed;inset:0;z-index:300;background:var(--cream);display:flex;flex-direction:column;transition:transform .38s cubic-bezier(.4,0,.2,1)}
+.ls-search-head{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.25rem;border-bottom:1px solid var(--bone)}
+.ls-search-field{display:flex;align-items:center;gap:.75rem;border-bottom:1.5px solid var(--charcoal);padding-bottom:.6rem;max-width:760px}
+.ls-search-input{flex:1;border:none;outline:none;background:none;font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;color:var(--charcoal)}
+.ls-search-input::placeholder{color:var(--warm-gray);font-style:italic}
+.ls-search-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--stone);margin-bottom:.75rem}
+.ls-search-sugg{padding:.4rem .85rem;border-radius:9999px;font-size:.78rem;border:1px solid var(--bone);background:var(--white);color:var(--charcoal);cursor:pointer;font-family:'Jost',sans-serif}
+.ls-search-sugg.accent{border-color:var(--accent-light);background:var(--accent-pale);color:var(--accent)}
+.ls-search-result{display:flex;align-items:center;gap:.85rem;padding:.6rem 0;border-bottom:1px solid var(--bone);cursor:pointer;max-width:760px}
+.ls-search-thumb{width:46px;height:58px;border-radius:2px;object-fit:cover;background:var(--bone);flex-shrink:0}
 .ls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.75rem;padding:1rem 1.25rem}
 
 /* ── MODAL ── */
