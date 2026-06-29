@@ -357,6 +357,7 @@ function AuthScreen() {
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
   const [error, setError]             = useState("");
+  const [info, setInfo]               = useState("");
   const [loading, setLoading]         = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showForgot, setShowForgot]   = useState(false);
@@ -370,13 +371,29 @@ function AuthScreen() {
   const handleSubmit = async () => {
     if (!email.trim() || !email.includes("@")) { setError("Merci de renseigner une adresse email valide."); return; }
     if (password.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); return; }
-    setError(""); setLoading(true);
+    setError(""); setInfo(""); setLoading(true);
     try {
-      const { error: err } = mode === "signup"
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
-      if (err) throw err;
-      // La redirection vers onboarding/listing est gérée par onAuthStateChange.
+      if (mode === "signup") {
+        const { data, error: err } = await supabase.auth.signUp({ email, password });
+        if (err) throw err;
+        // Email déjà enregistré : Supabase renvoie un user sans identités.
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          setError("Un compte existe déjà avec cet email. Connectez-vous.");
+          setMode("login");
+          return;
+        }
+        // Confirmation d'email activée : pas de session immédiate.
+        if (!data.session) {
+          setInfo("Compte créé ✓ Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.");
+          setMode("login");
+          return;
+        }
+        // Sinon : session créée → onAuthStateChange gère la redirection.
+      } else {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
+        // Redirection gérée par onAuthStateChange.
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -422,7 +439,7 @@ function AuthScreen() {
         {/* Onglets */}
         <div style={{ display:"flex", borderBottom:"1px solid var(--bone)", marginBottom:"1.5rem" }}>
           {[{ k:"signup", l:"Créer un compte" }, { k:"login", l:"Se connecter" }].map(tab => (
-            <button key={tab.k} onClick={() => { setMode(tab.k); setError(""); }} style={{
+            <button key={tab.k} onClick={() => { setMode(tab.k); setError(""); setInfo(""); }} style={{
               flex:1, background:"none", border:"none", padding:".7rem 0", fontSize:".82rem",
               fontWeight: mode === tab.k ? 500 : 400, color: mode === tab.k ? "var(--accent)" : "var(--stone)",
               borderBottom: mode === tab.k ? "2px solid var(--accent)" : "2px solid transparent", marginBottom:"-1px",
@@ -472,6 +489,7 @@ function AuthScreen() {
         {mode === "signup" && <div style={{ marginBottom:"1.25rem" }}/>}
 
         {error && <div style={{ color:"var(--error)", fontSize:".78rem", marginBottom:"1rem" }}>{error}</div>}
+        {info && <div style={{ color:"var(--success)", fontSize:".78rem", marginBottom:"1rem", lineHeight:1.5 }}>{info}</div>}
 
         <button onClick={handleSubmit} disabled={loading} className="btn-primary" style={{ marginBottom:".85rem" }}>
           {loading ? <LoadingDots/> : mode === "signup" ? "Créer mon compte" : "Se connecter"}
@@ -507,9 +525,9 @@ function AuthScreen() {
         </p>
       </div>
 
-      {/* Overlay mot de passe oublié */}
-      <div style={{
-        position:"fixed", inset:0, zIndex:90, background:"var(--cream)", maxWidth:"430px", margin:"0 auto",
+      {/* Overlay mot de passe oublié — absolute dans le phone-frame (clippé hors-cadre quand fermé) */}
+      <div aria-hidden={!showForgot} style={{
+        position:"absolute", inset:0, zIndex:90, background:"var(--cream)",
         transform: showForgot ? "translateX(0)" : "translateX(100%)", transition:"transform .3s ease",
         display:"flex", flexDirection:"column",
       }}>
