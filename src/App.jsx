@@ -268,8 +268,12 @@ export default function CapsuleApp() {
     supabase.auth.getSession().then(({ data: { session } }) => applySession(session));
 
     // 2. Écoute les changements ultérieurs (login, logout, refresh token).
+    //    On DÉFÈRE le traitement hors du callback : appeler des fonctions
+    //    supabase (await .from()/getSession) directement dedans peut bloquer
+    //    sur le verrou d'auth (deadlock) — symptôme : l'écran ne change pas
+    //    après login tant qu'on n'a pas rafraîchi la page.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => applySession(session)
+      (_event, session) => { setTimeout(() => applySession(session), 0); }
     );
 
     return () => { active = false; subscription.unsubscribe(); };
