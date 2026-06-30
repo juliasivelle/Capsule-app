@@ -353,6 +353,7 @@ function LoadingScreen() {
 
 function AuthScreen() {
   const [mode, setMode]               = useState("signup"); // signup | login
+  const [firstName, setFirstName]     = useState("");
   const [email, setEmail]             = useState("");
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
@@ -369,12 +370,18 @@ function AuthScreen() {
   const labelStyle = { fontSize:".68rem", textTransform:"uppercase", letterSpacing:".05em", color:"var(--stone)", marginBottom:".4rem" };
 
   const handleSubmit = async () => {
+    if (mode === "signup" && !firstName.trim()) { setError("Merci de renseigner votre prénom."); return; }
     if (!email.trim() || !email.includes("@")) { setError("Merci de renseigner une adresse email valide."); return; }
     if (password.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); return; }
     setError(""); setInfo(""); setLoading(true);
     try {
       if (mode === "signup") {
-        const { data, error: err } = await supabase.auth.signUp({ email, password });
+        // full_name part dans user_metadata → copié dans profiles.full_name par le
+        // trigger handle_new_user, et disponible dans l'email de confirmation ({{ .Data.full_name }}).
+        const { data, error: err } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: firstName.trim() } },
+        });
         if (err) throw err;
         // Email déjà enregistré : Supabase renvoie un user sans identités.
         if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -447,6 +454,14 @@ function AuthScreen() {
             }}>{tab.l}</button>
           ))}
         </div>
+
+        {mode === "signup" && (
+          <>
+            <div style={labelStyle}>Prénom</div>
+            <input type="text" value={firstName} placeholder="Julia" autoFocus
+              onChange={e => setFirstName(e.target.value)} style={{ ...fieldStyle, marginBottom:"1rem" }} />
+          </>
+        )}
 
         <div style={labelStyle}>Adresse email</div>
         <input type="email" value={email} placeholder="julia@exemple.com"
