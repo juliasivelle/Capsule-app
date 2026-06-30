@@ -442,7 +442,7 @@ function AuthScreen() {
         </p>
       </div>
 
-      <div style={{ flex:1, padding:"1.75rem 1.5rem", display:"flex", flexDirection:"column" }}>
+      <div className="pf-narrow" style={{ flex:1, padding:"1.75rem 1.5rem", display:"flex", flexDirection:"column" }}>
         {/* Onglets */}
         <div style={{ display:"flex", borderBottom:"1px solid var(--bone)", marginBottom:"1.5rem" }}>
           {[{ k:"signup", l:"Créer un compte" }, { k:"login", l:"Se connecter" }].map(tab => (
@@ -691,7 +691,7 @@ function OnboardingFlow({ onComplete, initialProfile }) {
       <ProgressBar value={(step / 5) * 100} />
 
       {isEditMode && (
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem .25rem" }}>
+        <div className="pf-narrow" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem .25rem" }}>
           <h2 style={{ fontSize:"1.15rem" }}>Modifier mon profil</h2>
           <button onClick={() => onComplete(draft)} aria-label="Fermer" style={{ background:"var(--bone)", border:"none", width:"30px", height:"30px", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name="close" size={14} color="var(--charcoal)"/>
@@ -700,7 +700,7 @@ function OnboardingFlow({ onComplete, initialProfile }) {
       )}
 
       {isEditMode && (
-        <div style={{ display:"flex", gap:".4rem", padding:".75rem 1.25rem", overflowX:"auto" }}>
+        <div className="pf-narrow" style={{ display:"flex", gap:".4rem", padding:".75rem 1.25rem", overflowX:"auto" }}>
           {STEP_LABELS.map((label, i) => {
             const n = i + 1, active = n === step;
             return (
@@ -716,14 +716,14 @@ function OnboardingFlow({ onComplete, initialProfile }) {
       )}
 
       {!isEditMode && (
-        <div style={{ padding:".75rem 1.25rem .25rem", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div className="pf-narrow" style={{ padding:".75rem 1.25rem .25rem", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ fontSize:".68rem", letterSpacing:".1em", textTransform:"uppercase", color:"var(--stone)" }}>
             Étape {step} / 5{step === 5 ? " — Optionnel" : ""}
           </span>
         </div>
       )}
 
-      <div key={anim} className={direction.current === "fwd" ? "step-enter-fwd" : "step-enter-back"}
+      <div key={anim} className={`pf-narrow ${direction.current === "fwd" ? "step-enter-fwd" : "step-enter-back"}`}
         style={{ flex:1, padding:".5rem 1.25rem 1.5rem", overflowY:"auto" }}>
 
         {step === 1 && (
@@ -863,7 +863,7 @@ function OnboardingFlow({ onComplete, initialProfile }) {
         {step === 5 && <DressingStep draft={draft} setDraft={setDraft} />}
       </div>
 
-      <div style={{ padding:".85rem 1.25rem 1rem", borderTop:"1px solid var(--bone)", display:"flex", flexDirection:"column", gap:".6rem", background:"var(--cream)" }}>
+      <div className="pf-narrow" style={{ padding:".85rem 1.25rem 1rem", borderTop:"1px solid var(--bone)", display:"flex", flexDirection:"column", gap:".6rem", background:"var(--cream)" }}>
         {(step > 1 || step === 5) && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             {step > 1 ? (
@@ -1482,8 +1482,9 @@ body{background:var(--cream);font-family:'Jost',sans-serif}
 .fade-in{animation:fadeIn .35s ease both}
 .step-enter-fwd{animation:slideInRight .3s ease both}
 .step-enter-back{animation:slideInLeft .3s ease both}
-.phone-frame{width:100%;max-width:430px;margin:0 auto;background:var(--cream);min-height:100vh;position:relative;overflow-x:hidden}
-@media(min-width:480px){.phone-frame{box-shadow:0 0 60px rgba(28,21,16,.12)}}
+.phone-frame{width:100%;background:var(--cream);min-height:100vh;position:relative;overflow-x:hidden}
+/* Contenu lisible centré sur desktop (les bandeaux restent pleine largeur) */
+.pf-narrow{width:100%;max-width:540px;margin-left:auto;margin-right:auto}
 .phone-frame h1,.phone-frame h2,.phone-frame h3{font-family:'Playfair Display',serif;font-weight:400;font-style:italic;color:var(--ink)}
 .ob-fieldlabel{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--stone);margin-bottom:.4rem}
 .ob-text-input{width:100%;border:1px solid var(--bone);border-radius:2px;padding:.85rem 1rem;font-size:1rem;background:var(--white);outline:none;font-family:'Jost',sans-serif;color:var(--charcoal)}
